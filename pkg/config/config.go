@@ -1,0 +1,94 @@
+// Copyright (c) 2025 Benjamin Borbe All rights reserved.
+// Use of this source code is governed by a BSD-style
+// license that can be found in the LICENSE file.
+
+package config
+
+import (
+	"context"
+	"os"
+	"strings"
+
+	"github.com/bborbe/errors"
+	"gopkg.in/yaml.v3"
+)
+
+// Config holds the parsed task-watcher configuration.
+type Config struct {
+	VaultPath string
+	Assignee  string
+	Statuses  []string
+	Webhook   string
+	Phases    []string
+}
+
+//counterfeiter:generate -o mocks/config_loader.go --fake-name FakeConfigLoader . Loader
+
+// Loader loads configuration from a file.
+type Loader interface {
+	Load(ctx context.Context) (Config, error)
+}
+
+// NewLoader returns a Loader that reads config from filePath.
+func NewLoader(filePath string) Loader {
+	return &loader{filePath: filePath}
+}
+
+type loader struct {
+	filePath string
+}
+
+type rawConfig struct {
+	Vault struct {
+		Path string `yaml:"path"`
+	} `yaml:"vault"`
+	Assignee string   `yaml:"assignee"`
+	Statuses []string `yaml:"statuses"`
+	Phases   []string `yaml:"phases"`
+	Webhook  string   `yaml:"webhook"`
+}
+
+func (l *loader) Load(ctx context.Context) (Config, error) {
+	data, err := os.ReadFile(l.filePath)
+	if err != nil {
+		return Config{}, errors.Wrapf(ctx, err, "read config file %s", l.filePath)
+	}
+
+	var raw rawConfig
+	if err := yaml.Unmarshal(data, &raw); err != nil {
+		return Config{}, errors.Wrapf(ctx, err, "parse config file %s", l.filePath)
+	}
+
+	if raw.Vault.Path == "" {
+		return Config{}, errors.Errorf(ctx, "missing required field: vault.path")
+	}
+	if raw.Assignee == "" {
+		return Config{}, errors.Errorf(ctx, "missing required field: assignee")
+	}
+	if len(raw.Statuses) == 0 {
+		return Config{}, errors.Errorf(ctx, "missing required field: statuses")
+	}
+	if len(raw.Phases) == 0 {
+		return Config{}, errors.Errorf(ctx, "missing required field: phases")
+	}
+	if raw.Webhook == "" {
+		return Config{}, errors.Errorf(ctx, "missing required field: webhook")
+	}
+
+	vaultPath := raw.Vault.Path
+	if strings.HasPrefix(vaultPath, "~/") {
+		home, err := os.UserHomeDir()
+		if err != nil {
+			return Config{}, errors.Wrapf(ctx, err, "get user home dir")
+		}
+		vaultPath = home + vaultPath[1:]
+	}
+
+	return Config{
+		VaultPath: vaultPath,
+		Assignee:  raw.Assignee,
+		Statuses:  raw.Statuses,
+		Phases:    raw.Phases,
+		Webhook:   raw.Webhook,
+	}, nil
+}
