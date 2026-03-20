@@ -1,8 +1,13 @@
 ---
-status: approved
+status: completed
 spec: ["001"]
+summary: Implemented pkg/notify with Notifier interface, in-memory dedup, httptest-based tests (87.5% coverage), and generated FakeNotifier mock
+container: task-watcher-004-spec-001-notify
+dark-factory-version: v0.59.5-dirty
 created: "2026-03-20T19:15:00Z"
 queued: "2026-03-20T22:00:54Z"
+started: "2026-03-20T22:07:13Z"
+completed: "2026-03-20T22:12:33Z"
 branch: dark-factory/core-packages
 ---
 
