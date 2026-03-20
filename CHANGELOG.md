@@ -8,6 +8,10 @@ Please choose versions by [Semantic Versioning](http://semver.org/).
 * MINOR version when you add functionality in a backwards-compatible manner, and
 * PATCH version when you make backwards-compatible bug fixes.
 
+## v0.3.0
+
+- feat: add pkg/notify with HTTP webhook notifier, in-memory deduplication, and Counterfeiter mock
+
 ## v0.2.0
 
 - feat: add pkg/config with YAML config loader, field validation, and ~/  expansion
