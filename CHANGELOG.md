@@ -10,6 +10,9 @@ Please choose versions by [Semantic Versioning](http://semver.org/).
 
 ## Unreleased
 
+### Fixed
+- Exclude golangci-lint v1 transitive dep, update kafka to v1.22.8
+
 ### Added
 - Initial project structure from go-skeleton
 - Module github.com/bborbe/task-watcher
