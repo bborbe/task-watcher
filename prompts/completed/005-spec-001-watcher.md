@@ -1,8 +1,13 @@
 ---
-status: approved
+status: completed
 spec: ["001"]
+summary: Implemented pkg/watcher with vault file-watching, task frontmatter filtering, notifier integration, Counterfeiter mock, and Ginkgo tests at 88.5% coverage
+container: task-watcher-005-spec-001-watcher
+dark-factory-version: v0.59.5-dirty
 created: "2026-03-20T19:15:00Z"
 queued: "2026-03-20T22:00:54Z"
+started: "2026-03-20T22:12:35Z"
+completed: "2026-03-20T22:30:18Z"
 branch: dark-factory/core-packages
 ---
 
