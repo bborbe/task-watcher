@@ -8,6 +8,7 @@
 /.update-logs/
 /data
 /ideas
+/CLAUDE.md
 /.dark-factory.lock
 /prompts/log
 /vendor

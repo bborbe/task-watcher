@@ -1,28 +1,92 @@
-include Makefile.variables
-include Makefile.precommit
-include Makefile.docker
-include example.env
 
-SERVICE = bborbe/go-skeleton
+VERSION ?= $(shell git describe --tags --always --dirty 2>/dev/null || echo dev)
+LDFLAGS := -X main.version=$(VERSION)
 
+.PHONY: default
+default: precommit
+
+.PHONY: run
 run:
-	@go run -mod=mod main.go \
-	-sentry-dsn="$(shell teamvault-url --teamvault-config ~/.teamvault.json --teamvault-key=${SENTRY_DSN_KEY})" \
-	-listen="localhost:${SKELETON_PORT}" \
-	-kafka-brokers="${KAFKA_BROKERS}" \
-	-datadir="data" \
-	-batch-size="100" \
-	-v=2
+	@go run -mod=mod main.go
 
-deps:
-	go install github.com/bborbe/teamvault-utils/cmd/teamvault-config-parser@latest
-	go install github.com/bborbe/teamvault-utils/cmd/teamvault-file@latest
-	go install github.com/bborbe/teamvault-utils/cmd/teamvault-url@latest
-	go install github.com/bborbe/teamvault-utils/cmd/teamvault-username@latest
-	go install github.com/bborbe/teamvault-utils/cmd/teamvault-password@latest
-	go install github.com/onsi/ginkgo/v2/ginkgo@v2.25.3
-	sudo port install trivy
+.PHONY: build
+build:
+	@go build -mod=mod -o bin/task-watcher main.go
 
-formatenv:
-	cat example.env | sort > c
-	mv c example.env
+.PHONY: install
+install:
+	@go install -mod=mod -ldflags "$(LDFLAGS)" .
+
+.PHONY: precommit
+precommit: ensure format generate test check addlicense
+	@echo "ready to commit"
+
+.PHONY: ensure
+ensure:
+	go mod tidy
+	go mod verify
+	rm -rf vendor
+
+.PHONY: format
+format:
+	find . -type f -name 'go.mod' -not -path './vendor/*' -exec go run -mod=mod github.com/shoenig/go-modtool -w fmt "{}" \;
+	find . -type f -name '*.go' -not -path './vendor/*' -exec gofmt -w "{}" +
+	go run -mod=mod github.com/incu6us/goimports-reviser/v3 -project-name github.com/bborbe/task-watcher -format -excludes vendor ./...
+	find . -type d -name vendor -prune -o -type f -name '*.go' -print0 | xargs -0 -n 10 go run -mod=mod github.com/segmentio/golines --max-len=100 -w
+
+.PHONY: generate
+generate:
+	rm -rf mocks
+	go generate -mod=mod ./...
+
+.PHONY: test
+test:
+	go test -mod=mod -p=$${GO_TEST_PARALLEL:-1} -cover -race $(shell go list -mod=mod ./... | grep -v /vendor/)
+
+.PHONY: check
+check: lint vet errcheck vulncheck osv-scanner gosec trivy
+
+.PHONY: vet
+vet:
+	go vet -mod=mod $(shell go list -mod=mod ./... | grep -v /vendor/)
+
+.PHONY: errcheck
+errcheck:
+	go run -mod=mod github.com/kisielk/errcheck -ignore '(Close|Write|Fprint)' $(shell go list -mod=mod ./... | grep -v /vendor/)
+
+.PHONY: vulncheck
+vulncheck:
+	go run -mod=mod golang.org/x/vuln/cmd/govulncheck $(shell go list -mod=mod ./... | grep -v /vendor/)
+
+.PHONY: osv-scanner
+osv-scanner:
+	@if [ -f .osv-scanner.toml ]; then \
+		echo "Using .osv-scanner.toml"; \
+		go run -mod=mod github.com/google/osv-scanner/v2/cmd/osv-scanner --config .osv-scanner.toml --recursive .; \
+	else \
+		echo "No config found, running default scan"; \
+		go run -mod=mod github.com/google/osv-scanner/v2/cmd/osv-scanner --recursive .; \
+	fi
+
+.PHONY: gosec
+gosec:
+	go run -mod=mod github.com/securego/gosec/v2/cmd/gosec -exclude=G104 ./...
+
+.PHONY: trivy
+trivy:
+	trivy fs \
+	--db-repository ghcr.io/aquasecurity/trivy-db \
+	--scanners vuln,secret \
+	--quiet \
+	--no-progress \
+	--disable-telemetry \
+	--exit-code 1 .
+
+.PHONY: lint
+lint:
+	go run -mod=mod \
+	github.com/golangci/golangci-lint/cmd/golangci-lint run --config .golangci.yml ./...
+
+.PHONY: addlicense
+addlicense:
+	go run -mod=mod github.com/google/addlicense -c "Benjamin Borbe" -y $$(date +'%Y') -l bsd $$(find . -name "*.go" -not -path './vendor/*')
