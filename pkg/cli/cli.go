@@ -15,6 +15,7 @@ import (
 
 	"github.com/spf13/cobra"
 
+	"github.com/bborbe/task-watcher/pkg/config"
 	"github.com/bborbe/task-watcher/pkg/factory"
 	"github.com/bborbe/task-watcher/pkg/notify"
 )
@@ -75,12 +76,7 @@ func Run(ctx context.Context, args []string) error {
 				dryRun,
 			)
 
-			var notifier notify.Notifier
-			if dryRun {
-				notifier = factory.CreateDryRunNotifier(cfg)
-			} else {
-				notifier = factory.CreateNotifier(cfg)
-			}
+			notifier := buildNotifier(cfg, dryRun)
 			w := factory.CreateWatcher(cfg, notifier)
 
 			errCh := make(chan error, 1)
@@ -115,4 +111,18 @@ func Run(ctx context.Context, args []string) error {
 
 	rootCmd.SetArgs(args)
 	return rootCmd.ExecuteContext(ctx)
+}
+
+// buildNotifier selects the appropriate notifier based on format and dry-run mode.
+func buildNotifier(cfg config.Config, dryRun bool) notify.Notifier {
+	if cfg.Format == "openclaw" {
+		if dryRun {
+			return factory.CreateDryRunOpenClawNotifier(cfg)
+		}
+		return factory.CreateOpenClawNotifier(cfg)
+	}
+	if dryRun {
+		return factory.CreateDryRunNotifier(cfg)
+	}
+	return factory.CreateNotifier(cfg)
 }

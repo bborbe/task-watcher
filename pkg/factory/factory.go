@@ -30,6 +30,18 @@ func CreateDryRunNotifier(cfg config.Config) notify.Notifier {
 	return notify.NewDryRunNotifier(cfg.Webhook)
 }
 
+// CreateOpenClawNotifier constructs a notify.Notifier that sends OpenClaw-formatted payloads.
+// Pure composition: no network calls at construction time.
+func CreateOpenClawNotifier(cfg config.Config) notify.Notifier {
+	return notify.NewOpenClawNotifier(cfg.Webhook, cfg.WebhookToken, http.DefaultClient)
+}
+
+// CreateDryRunOpenClawNotifier constructs a notify.Notifier that logs OpenClaw-formatted payloads instead of sending HTTP requests.
+// Pure composition: no I/O at construction time.
+func CreateDryRunOpenClawNotifier(cfg config.Config) notify.Notifier {
+	return notify.NewDryRunOpenClawNotifier(cfg.Webhook, cfg.WebhookToken)
+}
+
 // CreateWatcher constructs a watcher.Watcher that observes the vault and
 // forwards matching task events to the notifier.
 // Pure composition: no filesystem access at construction time.

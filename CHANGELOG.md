@@ -2,6 +2,10 @@
 
 All notable changes to this project will be documented in this file.
 
+## v0.11.0
+
+- feat: add OpenClaw webhook format support with `format: openclaw` config field, `webhook_token` auth header, and OpenClaw-shaped payload `{name, message, wakeMode, deliver}` sent to `/hooks/agent`
+
 Please choose versions by [Semantic Versioning](http://semver.org/).
 
 * MAJOR version when you make incompatible API changes,

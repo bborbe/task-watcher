@@ -167,4 +167,50 @@ phases:
 		Expect(err).To(HaveOccurred())
 		Expect(err.Error()).To(ContainSubstring("webhook"))
 	})
+
+	It("defaults format to generic when not specified", func() {
+		path := writeTempConfig(validYAML)
+		DeferCleanup(os.Remove, path)
+
+		cfg, err := config.NewLoader(path).Load(ctx)
+		Expect(err).NotTo(HaveOccurred())
+		Expect(cfg.Format).To(Equal("generic"))
+	})
+
+	It("accepts format generic", func() {
+		path := writeTempConfig(validYAML + "format: generic\n")
+		DeferCleanup(os.Remove, path)
+
+		cfg, err := config.NewLoader(path).Load(ctx)
+		Expect(err).NotTo(HaveOccurred())
+		Expect(cfg.Format).To(Equal("generic"))
+	})
+
+	It("accepts format openclaw with webhook_token", func() {
+		path := writeTempConfig(validYAML + "format: openclaw\nwebhook_token: secret\n")
+		DeferCleanup(os.Remove, path)
+
+		cfg, err := config.NewLoader(path).Load(ctx)
+		Expect(err).NotTo(HaveOccurred())
+		Expect(cfg.Format).To(Equal("openclaw"))
+		Expect(cfg.WebhookToken).To(Equal("secret"))
+	})
+
+	It("returns error when format is openclaw but webhook_token is missing", func() {
+		path := writeTempConfig(validYAML + "format: openclaw\n")
+		DeferCleanup(os.Remove, path)
+
+		_, err := config.NewLoader(path).Load(ctx)
+		Expect(err).To(HaveOccurred())
+		Expect(err.Error()).To(ContainSubstring("webhook_token"))
+	})
+
+	It("returns error when format is unknown", func() {
+		path := writeTempConfig(validYAML + "format: invalid\n")
+		DeferCleanup(os.Remove, path)
+
+		_, err := config.NewLoader(path).Load(ctx)
+		Expect(err).To(HaveOccurred())
+		Expect(err.Error()).To(ContainSubstring("invalid"))
+	})
 })

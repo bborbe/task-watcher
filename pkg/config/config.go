@@ -16,11 +16,13 @@ import (
 
 // Config holds the parsed task-watcher configuration.
 type Config struct {
-	VaultPath string
-	Assignee  string
-	Statuses  []string
-	Webhook   string
-	Phases    []string
+	VaultPath    string
+	Assignee     string
+	Statuses     []string
+	Webhook      string
+	Phases       []string
+	Format       string
+	WebhookToken string
 }
 
 //counterfeiter:generate -o ../../mocks/config_loader.go --fake-name FakeConfigLoader . Loader
@@ -43,10 +45,12 @@ type rawConfig struct {
 	Vault struct {
 		Path string `yaml:"path"`
 	} `yaml:"vault"`
-	Assignee string   `yaml:"assignee"`
-	Statuses []string `yaml:"statuses"`
-	Phases   []string `yaml:"phases"`
-	Webhook  string   `yaml:"webhook"`
+	Assignee     string   `yaml:"assignee"`
+	Statuses     []string `yaml:"statuses"`
+	Phases       []string `yaml:"phases"`
+	Webhook      string   `yaml:"webhook"`
+	Format       string   `yaml:"format"`
+	WebhookToken string   `yaml:"webhook_token"`
 }
 
 func (l *loader) Load(ctx context.Context) (Config, error) {
@@ -87,6 +91,21 @@ func (l *loader) Load(ctx context.Context) (Config, error) {
 		return Config{}, errors.Errorf(ctx, "missing required field: webhook")
 	}
 
+	format := raw.Format
+	if format == "" {
+		format = "generic"
+	}
+	if format != "generic" && format != "openclaw" {
+		return Config{}, errors.Errorf(
+			ctx,
+			"invalid format %q: must be \"generic\" or \"openclaw\"",
+			format,
+		)
+	}
+	if format == "openclaw" && raw.WebhookToken == "" {
+		return Config{}, errors.Errorf(ctx, "webhook_token is required when format is \"openclaw\"")
+	}
+
 	vaultPath := raw.Vault.Path
 	if strings.HasPrefix(vaultPath, "~/") {
 		home, err := os.UserHomeDir()
@@ -97,10 +116,12 @@ func (l *loader) Load(ctx context.Context) (Config, error) {
 	}
 
 	return Config{
-		VaultPath: vaultPath,
-		Assignee:  raw.Assignee,
-		Statuses:  raw.Statuses,
-		Phases:    raw.Phases,
-		Webhook:   raw.Webhook,
+		VaultPath:    vaultPath,
+		Assignee:     raw.Assignee,
+		Statuses:     raw.Statuses,
+		Phases:       raw.Phases,
+		Webhook:      raw.Webhook,
+		Format:       format,
+		WebhookToken: raw.WebhookToken,
 	}, nil
 }
