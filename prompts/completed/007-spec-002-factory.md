@@ -1,8 +1,13 @@
 ---
-status: approved
+status: completed
 spec: ["002"]
+summary: Created pkg/factory with pure composition factory functions CreateConfigLoader, CreateNotifier, and CreateWatcher, plus Ginkgo test suite with 100% coverage.
+container: task-watcher-007-spec-002-factory
+dark-factory-version: v0.59.5-dirty
 created: "2026-03-20T19:30:00Z"
 queued: "2026-03-21T10:58:16Z"
+started: "2026-03-21T11:03:40Z"
+completed: "2026-03-21T11:08:24Z"
 branch: dark-factory/main-wiring
 ---
 
