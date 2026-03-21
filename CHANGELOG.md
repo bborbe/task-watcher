@@ -8,6 +8,10 @@ Please choose versions by [Semantic Versioning](http://semver.org/).
 * MINOR version when you add functionality in a backwards-compatible manner, and
 * PATCH version when you make backwards-compatible bug fixes.
 
+## v0.5.0
+
+- feat: add pkg/factory with pure composition factory functions CreateConfigLoader, CreateNotifier, and CreateWatcher
+
 ## v0.4.1
 
 - refactor: consolidate counterfeiter mocks to project-root mocks/ directory, matching vault-cli convention
