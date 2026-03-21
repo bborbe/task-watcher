@@ -2,6 +2,10 @@
 
 All notable changes to this project will be documented in this file.
 
+## v0.14.1
+
+- fix: remove exclude directives from go.mod so `go install @latest` works
+
 ## v0.14.0
 
 - feat: log version field on startup so operators can confirm which build is running
