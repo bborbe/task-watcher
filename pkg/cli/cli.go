@@ -18,6 +18,8 @@ import (
 	"github.com/bborbe/task-watcher/pkg/factory"
 )
 
+var version = "dev"
+
 // Execute is the entry point called from main. It creates a root context with
 // signal handling and delegates to Run.
 func Execute() {
@@ -48,6 +50,7 @@ func Run(ctx context.Context, args []string) error {
 	rootCmd := &cobra.Command{
 		Use:          "task-watcher",
 		Short:        "Watches vault task files and notifies agents via webhook",
+		Version:      version,
 		SilenceUsage: true,
 		RunE: func(cmd *cobra.Command, _ []string) error {
 			if verbose {
