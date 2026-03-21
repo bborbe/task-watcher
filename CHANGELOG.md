@@ -8,6 +8,10 @@ Please choose versions by [Semantic Versioning](http://semver.org/).
 * MINOR version when you add functionality in a backwards-compatible manner, and
 * PATCH version when you make backwards-compatible bug fixes.
 
+## v0.6.0
+
+- feat: implement main.go with flag parsing, config loading, signal handling, and graceful shutdown
+
 ## v0.5.0
 
 - feat: add pkg/factory with pure composition factory functions CreateConfigLoader, CreateNotifier, and CreateWatcher
