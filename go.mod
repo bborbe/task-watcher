@@ -443,8 +443,3 @@ require (
 	www.velocidex.com/golang/go-ntfs v0.2.0 // indirect
 	www.velocidex.com/golang/regparser v0.0.0-20250203141505-31e704a67ef7 // indirect
 )
-
-exclude (
-	github.com/golangci/golangci-lint v1.63.4
-	github.com/golangci/golangci-lint v1.64.8
-)
