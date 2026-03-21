@@ -8,6 +8,10 @@ Please choose versions by [Semantic Versioning](http://semver.org/).
 * MINOR version when you add functionality in a backwards-compatible manner, and
 * PATCH version when you make backwards-compatible bug fixes.
 
+## v0.10.0
+
+- feat: add --dry-run flag that replaces HTTP webhook notifier with a logging-only notifier for safe testing
+
 ## v0.9.0
 
 - feat: add default config path ~/.task-watcher/config.yaml so --config flag is optional

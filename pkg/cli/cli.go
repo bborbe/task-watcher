@@ -16,6 +16,7 @@ import (
 	"github.com/spf13/cobra"
 
 	"github.com/bborbe/task-watcher/pkg/factory"
+	"github.com/bborbe/task-watcher/pkg/notify"
 )
 
 var version = "dev"
@@ -46,6 +47,7 @@ func Execute() {
 func Run(ctx context.Context, args []string) error {
 	var configPath string
 	var verbose bool
+	var dryRun bool
 
 	rootCmd := &cobra.Command{
 		Use:          "task-watcher",
@@ -63,9 +65,22 @@ func Run(ctx context.Context, args []string) error {
 				return fmt.Errorf("load config: %w", err)
 			}
 
-			slog.Info("task-watcher starting", "vaultPath", cfg.VaultPath, "assignee", cfg.Assignee)
+			slog.Info(
+				"task-watcher starting",
+				"vaultPath",
+				cfg.VaultPath,
+				"assignee",
+				cfg.Assignee,
+				"dryRun",
+				dryRun,
+			)
 
-			notifier := factory.CreateNotifier(cfg)
+			var notifier notify.Notifier
+			if dryRun {
+				notifier = factory.CreateDryRunNotifier()
+			} else {
+				notifier = factory.CreateNotifier(cfg)
+			}
 			w := factory.CreateWatcher(cfg, notifier)
 
 			errCh := make(chan error, 1)
@@ -95,6 +110,8 @@ func Run(ctx context.Context, args []string) error {
 	rootCmd.Flags().
 		StringVar(&configPath, "config", "", "path to config YAML file (default: ~/.task-watcher/config.yaml)")
 	rootCmd.Flags().BoolVar(&verbose, "verbose", false, "enable debug logging")
+	rootCmd.Flags().
+		BoolVar(&dryRun, "dry-run", false, "log notifications instead of sending HTTP webhooks")
 
 	rootCmd.SetArgs(args)
 	return rootCmd.ExecuteContext(ctx)
