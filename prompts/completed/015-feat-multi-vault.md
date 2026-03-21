@@ -1,10 +1,12 @@
 ---
-status: executing
+status: completed
+summary: Replaced single-vault config with multi-vault map supporting multiple Obsidian vaults watched simultaneously by one process
 container: task-watcher-015-feat-multi-vault
 dark-factory-version: v0.59.5-dirty
 created: "2026-03-21T15:28:04Z"
 queued: "2026-03-21T15:28:04Z"
 started: "2026-03-21T15:28:06Z"
+completed: "2026-03-21T15:35:26Z"
 ---
 
 <summary>
