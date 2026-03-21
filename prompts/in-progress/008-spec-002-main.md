@@ -1,7 +1,8 @@
 ---
-status: created
+status: approved
 spec: ["002"]
 created: "2026-03-20T19:30:00Z"
+queued: "2026-03-21T10:58:16Z"
 branch: dark-factory/main-wiring
 ---
 

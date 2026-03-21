@@ -25,7 +25,7 @@ type Notification struct {
 
 // Notifier sends notifications to a configured webhook URL.
 //
-//counterfeiter:generate -o mocks/notifier.go --fake-name FakeNotifier . Notifier
+//counterfeiter:generate -o ../../mocks/notifier.go --fake-name FakeNotifier . Notifier
 type Notifier interface {
 	Notify(ctx context.Context, notification Notification) error
 }

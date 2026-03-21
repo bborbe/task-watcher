@@ -14,8 +14,8 @@ import (
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 
+	mocknotify "github.com/bborbe/task-watcher/mocks"
 	"github.com/bborbe/task-watcher/pkg/config"
-	mocknotify "github.com/bborbe/task-watcher/pkg/notify/mocks"
 	"github.com/bborbe/task-watcher/pkg/watcher"
 )
 

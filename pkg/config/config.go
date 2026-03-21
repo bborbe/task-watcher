@@ -22,7 +22,7 @@ type Config struct {
 	Phases    []string
 }
 
-//counterfeiter:generate -o mocks/config_loader.go --fake-name FakeConfigLoader . Loader
+//counterfeiter:generate -o ../../mocks/config_loader.go --fake-name FakeConfigLoader . Loader
 
 // Loader loads configuration from a file.
 type Loader interface {

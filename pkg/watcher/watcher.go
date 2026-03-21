@@ -25,7 +25,7 @@ type taskReader interface {
 
 // Watcher watches the vault tasks directory and notifies on matching task changes.
 //
-//counterfeiter:generate -o mocks/watcher.go --fake-name FakeWatcher . Watcher
+//counterfeiter:generate -o ../../mocks/watcher.go --fake-name FakeWatcher . Watcher
 type Watcher interface {
 	Watch(ctx context.Context) error
 }

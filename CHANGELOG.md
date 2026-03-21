@@ -8,6 +8,10 @@ Please choose versions by [Semantic Versioning](http://semver.org/).
 * MINOR version when you add functionality in a backwards-compatible manner, and
 * PATCH version when you make backwards-compatible bug fixes.
 
+## v0.4.1
+
+- refactor: consolidate counterfeiter mocks to project-root mocks/ directory, matching vault-cli convention
+
 ## v0.4.0
 
 - feat: add pkg/watcher with vault file-watching, task frontmatter filtering by assignee/status/phase, and notifier integration

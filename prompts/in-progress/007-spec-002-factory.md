@@ -1,7 +1,8 @@
 ---
-status: created
+status: approved
 spec: ["002"]
 created: "2026-03-20T19:30:00Z"
+queued: "2026-03-21T10:58:16Z"
 branch: dark-factory/main-wiring
 ---
 
@@ -86,7 +87,7 @@ Before writing any code, read each of these files to confirm the exact interface
 4. Create `pkg/factory/factory_test.go` (package `factory_test`) with Ginkgo tests covering:
    - `CreateConfigLoader("/some/path")` returns a non-nil `config.Loader`
    - `CreateNotifier(config.Config{Webhook: "http://example.com"})` returns a non-nil `notify.Notifier`
-   - `CreateWatcher(cfg, notifier)` returns a non-nil `watcher.Watcher` — use a `FakeNotifier` from `pkg/notify/mocks/` as the notifier argument
+   - `CreateWatcher(cfg, notifier)` returns a non-nil `watcher.Watcher` — use a `FakeNotifier` from project-root `mocks/` package (`github.com/bborbe/task-watcher/mocks`) as the notifier argument
 
    These tests verify construction succeeds, not runtime behavior (which is tested in each package's own tests).
 

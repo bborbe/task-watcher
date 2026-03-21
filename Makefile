@@ -37,6 +37,8 @@ format:
 .PHONY: generate
 generate:
 	rm -rf mocks
+	mkdir -p mocks
+	echo "package mocks" > mocks/mocks.go
 	go generate -mod=mod ./...
 
 .PHONY: test
