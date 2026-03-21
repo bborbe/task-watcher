@@ -21,7 +21,7 @@ var _ = Describe("DryRunNotifier", func() {
 
 	BeforeEach(func() {
 		ctx = context.Background()
-		n = notify.NewDryRunNotifier()
+		n = notify.NewDryRunNotifier("https://example.com/webhook")
 	})
 
 	It("returns nil on first notification", func() {

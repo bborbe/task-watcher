@@ -77,7 +77,7 @@ func Run(ctx context.Context, args []string) error {
 
 			var notifier notify.Notifier
 			if dryRun {
-				notifier = factory.CreateDryRunNotifier()
+				notifier = factory.CreateDryRunNotifier(cfg)
 			} else {
 				notifier = factory.CreateNotifier(cfg)
 			}

@@ -26,8 +26,8 @@ func CreateNotifier(cfg config.Config) notify.Notifier {
 
 // CreateDryRunNotifier constructs a notify.Notifier that logs instead of sending HTTP requests.
 // Pure composition: no I/O at construction time.
-func CreateDryRunNotifier() notify.Notifier {
-	return notify.NewDryRunNotifier()
+func CreateDryRunNotifier(cfg config.Config) notify.Notifier {
+	return notify.NewDryRunNotifier(cfg.Webhook)
 }
 
 // CreateWatcher constructs a watcher.Watcher that observes the vault and

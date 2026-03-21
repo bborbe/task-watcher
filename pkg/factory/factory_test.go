@@ -31,7 +31,8 @@ var _ = Describe("Factory", func() {
 
 	Describe("CreateDryRunNotifier", func() {
 		It("returns a non-nil notify.Notifier", func() {
-			result := factory.CreateDryRunNotifier()
+			cfg := config.Config{Webhook: "http://example.com"}
+			result := factory.CreateDryRunNotifier(cfg)
 			Expect(result).NotTo(BeNil())
 		})
 	})

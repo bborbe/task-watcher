@@ -6,23 +6,28 @@ package notify
 
 import (
 	"context"
+	"encoding/json"
 	"log/slog"
 	"sync"
+
+	"github.com/bborbe/errors"
 )
 
 // NewDryRunNotifier returns a Notifier that logs notifications instead of sending HTTP requests.
-func NewDryRunNotifier() Notifier {
+func NewDryRunNotifier(webhookURL string) Notifier {
 	return &dryRunNotifier{
-		seen: make(map[string]struct{}),
+		webhookURL: webhookURL,
+		seen:       make(map[string]struct{}),
 	}
 }
 
 type dryRunNotifier struct {
-	seen map[string]struct{}
-	mu   sync.Mutex
+	webhookURL string
+	seen       map[string]struct{}
+	mu         sync.Mutex
 }
 
-func (d *dryRunNotifier) Notify(_ context.Context, n Notification) error {
+func (d *dryRunNotifier) Notify(ctx context.Context, n Notification) error {
 	key := n.TaskName + ":" + n.Phase
 
 	d.mu.Lock()
@@ -34,14 +39,15 @@ func (d *dryRunNotifier) Notify(_ context.Context, n Notification) error {
 	d.seen[key] = struct{}{}
 	d.mu.Unlock()
 
-	slog.Info(
-		"dry-run notification",
-		"taskName",
-		n.TaskName,
-		"phase",
-		n.Phase,
-		"assignee",
-		n.Assignee,
+	body, err := json.Marshal(n)
+	if err != nil {
+		return errors.Wrapf(ctx, err, "marshal notification")
+	}
+	slog.Info("dry-run: would send webhook",
+		"method", "POST",
+		"url", d.webhookURL,
+		"header", "Content-Type: application/json",
+		"body", string(body),
 	)
 	return nil
 }

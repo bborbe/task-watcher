@@ -8,6 +8,10 @@ Please choose versions by [Semantic Versioning](http://semver.org/).
 * MINOR version when you add functionality in a backwards-compatible manner, and
 * PATCH version when you make backwards-compatible bug fixes.
 
+## v0.10.1
+
+- fix: dry-run notifier now logs JSON body and Content-Type header to show the full HTTP request that would be sent
+
 ## v0.10.0
 
 - feat: add --dry-run flag that replaces HTTP webhook notifier with a logging-only notifier for safe testing
