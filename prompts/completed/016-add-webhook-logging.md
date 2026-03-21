@@ -1,10 +1,12 @@
 ---
-status: executing
+status: completed
+summary: Added slog debug/info logging to notify.go and openclaw.go real notifiers — debug before HTTP call with masked auth, info after successful delivery, debug on dedup skip.
 container: task-watcher-016-add-webhook-logging
 dark-factory-version: v0.63.0
 created: "2026-03-21T19:03:16Z"
 queued: "2026-03-21T19:03:16Z"
 started: "2026-03-21T19:04:21Z"
+completed: "2026-03-21T19:08:15Z"
 ---
 
 <summary>
