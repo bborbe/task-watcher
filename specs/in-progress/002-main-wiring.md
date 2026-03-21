@@ -1,7 +1,8 @@
 ---
-status: prompted
+status: verifying
 approved: "2026-03-20T19:09:27Z"
 prompted: "2026-03-20T19:11:11Z"
+verifying: "2026-03-21T11:11:51Z"
 branch: dark-factory/main-wiring
 ---
 
