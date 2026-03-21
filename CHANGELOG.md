@@ -8,6 +8,10 @@ Please choose versions by [Semantic Versioning](http://semver.org/).
 * MINOR version when you add functionality in a backwards-compatible manner, and
 * PATCH version when you make backwards-compatible bug fixes.
 
+## v0.7.0
+
+- feat: replace stdlib flag with cobra in pkg/cli, eliminating glog flag pollution from --help output
+
 ## v0.6.0
 
 - feat: implement main.go with flag parsing, config loading, signal handling, and graceful shutdown
