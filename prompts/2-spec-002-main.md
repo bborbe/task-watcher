@@ -40,9 +40,11 @@ Before writing any code, read:
 </context>
 
 <requirements>
-1. Read `main.go`, `pkg/config/config.go`, and `pkg/factory/factory.go` before writing any code.
+1. **Critical first step — read the actual API before writing any code:**
+   - Read `main.go`, `pkg/config/config.go`, and `pkg/factory/factory.go`
+   - Confirm how config loading works: it may be `factory.CreateConfigLoader(path)` returning a `Loader` with `Load(ctx)`, or it may be a direct function call like `config.LoadConfig(path)`. Adapt main.go to match whatever the factory provides.
 
-2. Replace `main.go` with the following structure (adapt field names to match actual `Config` struct):
+2. Replace `main.go` with the following structure. **Adapt to match actual factory/config API found in step 1** — the pseudocode below is illustrative, not prescriptive:
 
    ```
    package main
@@ -57,8 +59,9 @@ Before writing any code, read:
      c. If configPath == "", print "config flag required" to stderr and os.Exit(1)
      d. Create root context: ctx, cancel := context.WithCancel(context.Background())
         defer cancel()
-     e. Create config loader: loader := factory.CreateConfigLoader(configPath)
-     f. Load config: cfg, err := loader.Load(ctx)
+     e. Load config — adapt to actual API:
+        Option A (if Loader interface exists): loader := factory.CreateConfigLoader(configPath); cfg, err := loader.Load(ctx)
+        Option B (if standalone function): cfg, err := config.LoadConfig(configPath)
         On error: log to stderr (include file path in message), os.Exit(1)
      g. Log startup (slog.Info): include vault path and assignee from cfg
         Example: slog.Info("task-watcher starting", "vaultPath", cfg.VaultPath, "assignee", cfg.Assignee)

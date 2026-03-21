@@ -7,6 +7,7 @@ package watcher
 import (
 	"context"
 	"log/slog"
+	"slices"
 
 	"github.com/bborbe/errors"
 	"github.com/bborbe/vault-cli/pkg/domain"
@@ -22,9 +23,9 @@ type taskReader interface {
 	ReadTask(ctx context.Context, vaultPath string, taskID domain.TaskID) (*domain.Task, error)
 }
 
-//go:generate counterfeiter -o mocks/watcher.go --fake-name FakeWatcher . Watcher
-
 // Watcher watches the vault tasks directory and notifies on matching task changes.
+//
+//counterfeiter:generate -o mocks/watcher.go --fake-name FakeWatcher . Watcher
 type Watcher interface {
 	Watch(ctx context.Context) error
 }
@@ -93,10 +94,5 @@ func (w *watcher) handleEvent(ctx context.Context, event ops.WatchEvent) error {
 }
 
 func containsString(slice []string, s string) bool {
-	for _, v := range slice {
-		if v == s {
-			return true
-		}
-	}
-	return false
+	return slices.Contains(slice, s)
 }

@@ -35,13 +35,16 @@ Before writing any code, read each of these files to confirm the exact interface
 </context>
 
 <requirements>
-1. Read the following files to understand the exact API before writing factories:
-   - `pkg/config/config.go` — confirm `Loader` interface signature and `NewLoader` constructor
-   - `pkg/notify/notify.go` — confirm `Notifier` interface signature and `NewNotifier` constructor
-   - `pkg/watcher/watcher.go` — confirm `Watcher` interface signature and `NewWatcher` constructor
+1. **Critical first step — read the actual API before writing any code:**
+   - `pkg/config/config.go` — find the config loading API. It may be a `Loader` interface with `Load(ctx) (Config, error)`, or a standalone function like `LoadConfig(path string) (Config, error)`. Adapt the factory to match whatever exists.
+   - `pkg/notify/notify.go` — confirm `Notifier` interface signature and constructor name/params
+   - `pkg/watcher/watcher.go` — confirm `Watcher` interface signature and constructor name/params
 
-2. Create `pkg/factory/factory.go` with the following factory functions (package `factory`):
+2. Create `pkg/factory/factory.go` with factory functions (package `factory`).
 
+   **Adapt signatures to match the actual API found in step 1.** The examples below assume a `Loader` interface — if config uses a standalone function instead, wrap it or adjust the factory accordingly (e.g., return a `func(context.Context) (config.Config, error)` closure, or skip the config factory and have main call the function directly).
+
+   Example signatures (adapt to actual API):
    ```go
    // CreateConfigLoader constructs a config.Loader for the given file path.
    // Pure composition: no I/O, no context creation.
@@ -59,9 +62,10 @@ Before writing any code, read each of these files to confirm the exact interface
 
    Each function must:
    - Contain zero business logic (no conditionals, no loops, no error returns)
-   - Call only the constructors from the respective packages (`config.NewLoader`, `notify.NewNotifier`, `watcher.NewWatcher`)
+   - Call only the constructors from the respective packages
    - Return the interface type (not the concrete struct)
    - Adapt constructor parameters as needed — if a constructor requires fields from `cfg`, pass them directly
+   - **Correctness over specification fidelity** — if the actual API differs from these examples, match the real API
 
 3. Create `pkg/factory/suite_test.go` (package `factory_test`):
    ```go

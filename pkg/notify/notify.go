@@ -23,9 +23,9 @@ type Notification struct {
 	Assignee string `json:"assignee"`
 }
 
-//go:generate counterfeiter -o mocks/notifier.go --fake-name FakeNotifier . Notifier
-
 // Notifier sends notifications to a configured webhook URL.
+//
+//counterfeiter:generate -o mocks/notifier.go --fake-name FakeNotifier . Notifier
 type Notifier interface {
 	Notify(ctx context.Context, notification Notification) error
 }

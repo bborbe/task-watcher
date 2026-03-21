@@ -1,11 +1,12 @@
 ---
-status: verifying
+status: completed
 tags:
     - dark-factory
     - spec
 approved: "2026-03-20T19:03:01Z"
 prompted: "2026-03-20T19:05:55Z"
 verifying: "2026-03-20T22:30:18Z"
+completed: "2026-03-21T08:45:08Z"
 branch: dark-factory/core-packages
 ---
 
