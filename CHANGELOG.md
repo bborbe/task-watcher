@@ -2,6 +2,10 @@
 
 All notable changes to this project will be documented in this file.
 
+## v0.12.1
+
+- docs: update README with webhook formats section, link to OpenClaw webhook spec, trim phases to actionable set
+
 ## v0.12.0
 
 - feat: replace single `vault.path` config with `vaults` map supporting multiple Obsidian vaults, each with its own `path` and `tasks_dir`, watched simultaneously by one process

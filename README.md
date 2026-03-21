@@ -41,12 +41,9 @@ statuses:
   - in_progress
 
 phases:
-  - todo
   - planning
   - in_progress
   - ai_review
-  - human_review
-  - done
 
 # "generic" (default) or "openclaw"
 format: openclaw
@@ -56,6 +53,11 @@ webhook: http://localhost:9999/hooks/agent
 # required when format is "openclaw"
 webhook_token: my-secret-token
 ```
+
+## Webhook Formats
+
+- **generic** — sends raw notification JSON to the webhook URL
+- **openclaw** — sends [OpenClaw `/hooks/agent`](https://github.com/openclaw/openclaw/blob/main/docs/automation/webhook.md) payload with `Authorization: Bearer` header
 
 ## Development
 
