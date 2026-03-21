@@ -1,5 +1,10 @@
 ---
-status: created
+status: executing
+container: task-watcher-015-feat-multi-vault
+dark-factory-version: v0.59.5-dirty
+created: "2026-03-21T15:28:04Z"
+queued: "2026-03-21T15:28:04Z"
+started: "2026-03-21T15:28:06Z"
 ---
 
 <summary>
