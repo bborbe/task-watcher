@@ -1,10 +1,12 @@
 ---
-status: executing
+status: completed
+summary: Added version field to existing startup slog.Info call in pkg/cli/cli.go
 container: task-watcher-017-log-version-on-start
 dark-factory-version: v0.63.0
 created: "2026-03-21T19:27:20Z"
 queued: "2026-03-21T19:27:20Z"
 started: "2026-03-21T19:27:22Z"
+completed: "2026-03-21T19:32:00Z"
 ---
 
 <summary>
