@@ -76,6 +76,16 @@ var _ = Describe("Loader", func() {
 		Expect(err.Error()).To(ContainSubstring("/nonexistent/path/config.yaml"))
 	})
 
+	It("resolves default path when filePath is empty", func() {
+		home, err := os.UserHomeDir()
+		Expect(err).NotTo(HaveOccurred())
+		expectedPath := home + "/.task-watcher/config.yaml"
+
+		_, err = config.NewLoader("").Load(ctx)
+		Expect(err).To(HaveOccurred())
+		Expect(err.Error()).To(ContainSubstring(expectedPath))
+	})
+
 	It("returns error when vault.path is missing", func() {
 		path := writeTempConfig(`
 assignee: alice

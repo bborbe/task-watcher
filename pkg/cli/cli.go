@@ -60,7 +60,7 @@ func Run(ctx context.Context, args []string) error {
 			loader := factory.CreateConfigLoader(configPath)
 			cfg, err := loader.Load(ctx)
 			if err != nil {
-				return fmt.Errorf("load config %s: %w", configPath, err)
+				return fmt.Errorf("load config: %w", err)
 			}
 
 			slog.Info("task-watcher starting", "vaultPath", cfg.VaultPath, "assignee", cfg.Assignee)
@@ -92,11 +92,9 @@ func Run(ctx context.Context, args []string) error {
 		},
 	}
 
-	rootCmd.Flags().StringVar(&configPath, "config", "", "path to config YAML file")
+	rootCmd.Flags().
+		StringVar(&configPath, "config", "", "path to config YAML file (default: ~/.task-watcher/config.yaml)")
 	rootCmd.Flags().BoolVar(&verbose, "verbose", false, "enable debug logging")
-	if err := rootCmd.MarkFlagRequired("config"); err != nil {
-		return fmt.Errorf("mark config flag required: %w", err)
-	}
 
 	rootCmd.SetArgs(args)
 	return rootCmd.ExecuteContext(ctx)

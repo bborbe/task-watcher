@@ -7,6 +7,7 @@ package config
 import (
 	"context"
 	"os"
+	"path/filepath"
 	"strings"
 
 	"github.com/bborbe/errors"
@@ -49,14 +50,25 @@ type rawConfig struct {
 }
 
 func (l *loader) Load(ctx context.Context) (Config, error) {
-	data, err := os.ReadFile(l.filePath)
+	filePath := l.filePath
+	if filePath == "" {
+		homeDir, err := os.UserHomeDir()
+		if err != nil {
+			return Config{}, errors.Wrapf(ctx, err, "get user home dir")
+		}
+		filePath = filepath.Join(homeDir, ".task-watcher", "config.yaml")
+	}
+
+	data, err := os.ReadFile(
+		filePath,
+	) // #nosec G304 -- filePath is either user-provided CLI arg or the well-known default ~/.task-watcher/config.yaml
 	if err != nil {
-		return Config{}, errors.Wrapf(ctx, err, "read config file %s", l.filePath)
+		return Config{}, errors.Wrapf(ctx, err, "read config file %s", filePath)
 	}
 
 	var raw rawConfig
 	if err := yaml.Unmarshal(data, &raw); err != nil {
-		return Config{}, errors.Wrapf(ctx, err, "parse config file %s", l.filePath)
+		return Config{}, errors.Wrapf(ctx, err, "parse config file %s", filePath)
 	}
 
 	if raw.Vault.Path == "" {

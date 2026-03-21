@@ -8,6 +8,10 @@ Please choose versions by [Semantic Versioning](http://semver.org/).
 * MINOR version when you add functionality in a backwards-compatible manner, and
 * PATCH version when you make backwards-compatible bug fixes.
 
+## v0.9.0
+
+- feat: add default config path ~/.task-watcher/config.yaml so --config flag is optional
+
 ## v0.8.0
 
 - feat: add --version flag to CLI using cobra's built-in version support with ldflags injection
