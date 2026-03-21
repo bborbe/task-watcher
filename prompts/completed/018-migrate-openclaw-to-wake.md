@@ -1,10 +1,12 @@
 ---
-status: executing
+status: completed
+summary: Migrated OpenClaw notifier from /hooks/agent to /hooks/wake endpoint with simplified payload shape (text + mode fields only)
 container: task-watcher-018-migrate-openclaw-to-wake
 dark-factory-version: v0.63.0
 created: "2026-03-21T20:24:10Z"
 queued: "2026-03-21T20:24:10Z"
 started: "2026-03-21T20:24:12Z"
+completed: "2026-03-21T20:29:17Z"
 issue: migrate OpenClaw notifier from /hooks/agent to /hooks/wake
 ---
 
