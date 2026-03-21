@@ -2,6 +2,10 @@
 
 All notable changes to this project will be documented in this file.
 
+## v0.14.2
+
+- refactor: migrate OpenClaw notifier from /hooks/agent to /hooks/wake endpoint with simplified payload shape (text + mode)
+
 ## v0.14.1
 
 - fix: remove exclude directives from go.mod so `go install @latest` works

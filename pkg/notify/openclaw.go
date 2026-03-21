@@ -17,15 +17,13 @@ import (
 	"github.com/bborbe/errors"
 )
 
-// openClawPayload is the JSON payload sent to the OpenClaw /hooks/agent endpoint.
+// openClawPayload is the JSON payload sent to the OpenClaw /hooks/wake endpoint.
 type openClawPayload struct {
-	Name     string `json:"name"`
-	Message  string `json:"message"`
-	WakeMode string `json:"wakeMode"`
-	Deliver  bool   `json:"deliver"`
+	Text string `json:"text"`
+	Mode string `json:"mode"`
 }
 
-// NewOpenClawNotifier returns a Notifier that posts to an OpenClaw /hooks/agent endpoint.
+// NewOpenClawNotifier returns a Notifier that posts to an OpenClaw /hooks/wake endpoint.
 func NewOpenClawNotifier(webhookURL string, token string, httpClient *http.Client) Notifier {
 	return &openClawNotifier{
 		webhookURL: webhookURL,
@@ -63,15 +61,13 @@ func (n *openClawNotifier) Notify(ctx context.Context, notification Notification
 	n.mu.Unlock()
 
 	payload := openClawPayload{
-		Name: "task-watcher",
-		Message: fmt.Sprintf(
-			"Task update: %s. Assignee: %s. Phase: %s.",
-			notification.TaskName,
+		Text: fmt.Sprintf(
+			"Task watcher: %s task changed (task: %s, phase: %s)",
 			notification.Assignee,
+			notification.TaskName,
 			notification.Phase,
 		),
-		WakeMode: "now",
-		Deliver:  false,
+		Mode: "now",
 	}
 
 	body, err := json.Marshal(payload)

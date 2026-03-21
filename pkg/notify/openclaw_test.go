@@ -63,12 +63,10 @@ var _ = Describe("OpenClawNotifier", func() {
 
 		var payload map[string]interface{}
 		Expect(json.Unmarshal(lastBody, &payload)).To(Succeed())
-		Expect(payload["name"]).To(Equal("task-watcher"))
 		Expect(
-			payload["message"],
-		).To(Equal("Task update: my-task. Assignee: alice. Phase: planning."))
-		Expect(payload["wakeMode"]).To(Equal("now"))
-		Expect(payload["deliver"]).To(BeFalse())
+			payload["text"],
+		).To(Equal("Task watcher: alice task changed (task: my-task, phase: planning)"))
+		Expect(payload["mode"]).To(Equal("now"))
 	})
 
 	It("deduplicates: same task+phase only sends one request", func() {

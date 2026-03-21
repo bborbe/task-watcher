@@ -82,15 +82,13 @@ func (d *dryRunOpenClawNotifier) Notify(ctx context.Context, n Notification) err
 	d.mu.Unlock()
 
 	payload := openClawPayload{
-		Name: "task-watcher",
-		Message: fmt.Sprintf(
-			"Task update: %s. Assignee: %s. Phase: %s.",
-			n.TaskName,
+		Text: fmt.Sprintf(
+			"Task watcher: %s task changed (task: %s, phase: %s)",
 			n.Assignee,
+			n.TaskName,
 			n.Phase,
 		),
-		WakeMode: "now",
-		Deliver:  false,
+		Mode: "now",
 	}
 
 	body, err := json.Marshal(payload)
