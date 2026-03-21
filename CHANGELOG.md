@@ -2,6 +2,10 @@
 
 All notable changes to this project will be documented in this file.
 
+## v0.13.0
+
+- feat: add slog logging to real notifiers — debug log before HTTP call (method, url, headers, masked auth), info log after successful delivery, debug log on dedup skip
+
 ## v0.12.2
 
 - fix: tests no longer hang when ~/.task-watcher/config.yaml exists on host

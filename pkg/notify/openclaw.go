@@ -10,6 +10,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"log/slog"
 	"net/http"
 	"sync"
 
@@ -49,6 +50,13 @@ func (n *openClawNotifier) Notify(ctx context.Context, notification Notification
 	_, exists := n.seen[key]
 	if exists {
 		n.mu.Unlock()
+		slog.Debug(
+			"webhook skipped (duplicate)",
+			"task",
+			notification.TaskName,
+			"phase",
+			notification.Phase,
+		)
 		return nil
 	}
 	n.seen[key] = struct{}{}
@@ -83,6 +91,14 @@ func (n *openClawNotifier) Notify(ctx context.Context, notification Notification
 	req.Header.Set("Content-Type", "application/json")
 	req.Header.Set("Authorization", "Bearer "+n.token)
 
+	slog.Debug("sending webhook",
+		"method", http.MethodPost,
+		"url", n.webhookURL,
+		"header", "Content-Type: application/json",
+		"header", "Authorization: Bearer ***",
+		"body", string(body),
+	)
+
 	resp, err := n.httpClient.Do(req)
 	if err != nil {
 		return errors.Wrapf(ctx, err, "execute http request")
@@ -98,5 +114,14 @@ func (n *openClawNotifier) Notify(ctx context.Context, notification Notification
 		)
 	}
 
+	slog.Info(
+		"webhook sent",
+		"task",
+		notification.TaskName,
+		"phase",
+		notification.Phase,
+		"status",
+		resp.StatusCode,
+	)
 	return nil
 }
