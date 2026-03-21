@@ -1,8 +1,13 @@
 ---
-status: approved
+status: completed
 spec: ["002"]
+summary: Replaced placeholder main.go with full entry point implementing flag parsing, config loading via factory, signal handling, startup logging, and 5-second graceful shutdown.
+container: task-watcher-008-spec-002-main
+dark-factory-version: v0.59.5-dirty
 created: "2026-03-20T19:30:00Z"
 queued: "2026-03-21T10:58:16Z"
+started: "2026-03-21T11:08:26Z"
+completed: "2026-03-21T11:11:51Z"
 branch: dark-factory/main-wiring
 ---
 
