@@ -6,6 +6,7 @@ package notify_test
 
 import (
 	"testing"
+	"time"
 
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
@@ -15,5 +16,7 @@ import (
 
 func TestNotify(t *testing.T) {
 	RegisterFailHandler(Fail)
-	RunSpecs(t, "Notify Suite")
+	suiteConfig, reporterConfig := GinkgoConfiguration()
+	suiteConfig.Timeout = 60 * time.Second
+	RunSpecs(t, "Notify Suite", suiteConfig, reporterConfig)
 }

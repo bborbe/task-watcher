@@ -23,14 +23,8 @@ var _ = Describe("Run", func() {
 		ctx = context.Background()
 	})
 
-	It("returns error when --config flag is missing", func() {
-		err := cli.Run(ctx, []string{})
-		Expect(err).To(HaveOccurred())
-		Expect(err.Error()).To(ContainSubstring("config"))
-	})
-
 	It("returns error when config file does not exist", func() {
-		err := cli.Run(ctx, []string{"--config", "/nonexistent.yaml"})
+		err := cli.Run(ctx, []string{"--config", "/nonexistent/path/config.yaml"})
 		Expect(err).To(HaveOccurred())
 	})
 

@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented in this file.
 
+## v0.12.2
+
+- fix: tests no longer hang when ~/.task-watcher/config.yaml exists on host
+- docs: add install and replace/exclude rules to DoD
+
 ## v0.12.1
 
 - docs: update README with webhook formats section, link to OpenClaw webhook spec, trim phases to actionable set

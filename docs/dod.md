@@ -16,6 +16,11 @@ After completing your implementation, review your own changes against each crite
 - Changes to existing code have tests covering at least the changed behavior
 - Tests use Ginkgo v2 / Gomega with Counterfeiter mocks
 
+## Install
+
+- `go install github.com/bborbe/task-watcher@latest` works
+- No `exclude` or `replace` directives in go.mod (break remote install)
+
 ## Documentation
 
 - README.md updated if change affects usage, configuration, or setup
