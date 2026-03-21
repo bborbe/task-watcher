@@ -1,13 +1,23 @@
 # Definition of Done
 
-## Build
-- [ ] `make precommit` passes
+After completing your implementation, review your own changes against each criterion below. These are quality checks you perform by inspecting your work — not commands to run (linting and tests already ran via `validationCommand`). Report any unmet criterion as a blocker.
 
 ## Code Quality
-- [ ] No `//nolint` without explanation
 
-## Tests
-- [ ] Ginkgo/Gomega conventions
+- Exported types, functions, and interfaces have doc comments
+- Error handling uses `github.com/bborbe/errors` with context wrapping
+- No debug output (print statements, fmt.Printf) — use structured logging
+- Factory functions are pure composition — no conditionals, no I/O, no `context.Background()`
+- No `//nolint` without explanation
 
-## Style
-- [ ] Error handling follows `github.com/bborbe/errors` patterns
+## Testing
+
+- New code has good test coverage (target >= 80%)
+- Changes to existing code have tests covering at least the changed behavior
+- Tests use Ginkgo v2 / Gomega with Counterfeiter mocks
+
+## Documentation
+
+- README.md updated if change affects usage, configuration, or setup
+- docs/ align with implementation
+- CHANGELOG.md has entry under `## Unreleased`

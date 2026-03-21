@@ -8,22 +8,53 @@ Watches vault task files for phase/status changes and notifies configured agents
 ## Usage
 
 ```bash
+# default config: ~/.task-watcher/config.yaml
+task-watcher
+
+# custom config path
 task-watcher --config /etc/task-watcher/config.yaml
+
+# dry-run mode (logs instead of sending webhooks)
+task-watcher --dry-run
+
+# verbose logging
+task-watcher --verbose
+
+# version
+task-watcher --version
 ```
 
 ## Configuration
 
 ```yaml
-vault:
-  path: ~/vault
+vaults:
+  personal:
+    path: ~/Documents/Obsidian/Personal
+    tasks_dir: "24 Tasks"
+  work:
+    path: ~/Documents/Obsidian/Work
+    tasks_dir: "Tasks"
 
-openclaw:
-  assignee: TradingClaw
-  status:
-    - in_progress
-  phases:
-    - planning
-  webhook: http://localhost:8080/hooks/wake
+assignee: bborbe
+
+statuses:
+  - in_progress
+
+phases:
+  - todo
+  - planning
+  - in_progress
+  - ai_review
+  - human_review
+  - done
+
+# "generic" (default) or "openclaw"
+format: openclaw
+
+webhook: http://localhost:9999/hooks/agent
+
+# required when format is "openclaw"
+webhook_token: my-secret-token
 ```
 
 ## Development
