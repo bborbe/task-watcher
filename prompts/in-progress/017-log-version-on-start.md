@@ -1,5 +1,10 @@
 ---
-status: draft
+status: executing
+container: task-watcher-017-log-version-on-start
+dark-factory-version: v0.63.0
+created: "2026-03-21T19:27:20Z"
+queued: "2026-03-21T19:27:20Z"
+started: "2026-03-21T19:27:22Z"
 ---
 
 <summary>
