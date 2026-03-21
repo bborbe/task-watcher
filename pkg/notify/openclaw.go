@@ -13,6 +13,7 @@ import (
 	"log/slog"
 	"net/http"
 	"sync"
+	"time"
 
 	"github.com/bborbe/errors"
 )
@@ -24,12 +25,18 @@ type openClawPayload struct {
 }
 
 // NewOpenClawNotifier returns a Notifier that posts to an OpenClaw /hooks/wake endpoint.
-func NewOpenClawNotifier(webhookURL string, token string, httpClient *http.Client) Notifier {
+func NewOpenClawNotifier(
+	webhookURL string,
+	token string,
+	httpClient *http.Client,
+	dedupTTL time.Duration,
+) Notifier {
 	return &openClawNotifier{
 		webhookURL: webhookURL,
 		token:      token,
 		httpClient: httpClient,
-		seen:       make(map[string]struct{}),
+		dedupTTL:   dedupTTL,
+		seen:       make(map[string]time.Time),
 	}
 }
 
@@ -37,7 +44,8 @@ type openClawNotifier struct {
 	webhookURL string
 	token      string
 	httpClient *http.Client
-	seen       map[string]struct{}
+	dedupTTL   time.Duration
+	seen       map[string]time.Time
 	mu         sync.Mutex
 }
 
@@ -45,19 +53,18 @@ func (n *openClawNotifier) Notify(ctx context.Context, notification Notification
 	key := notification.TaskName + ":" + notification.Phase
 
 	n.mu.Lock()
-	_, exists := n.seen[key]
-	if exists {
+	lastSent, exists := n.seen[key]
+	if exists && time.Since(lastSent) < n.dedupTTL {
 		n.mu.Unlock()
-		slog.Debug(
-			"webhook skipped (duplicate)",
-			"task",
-			notification.TaskName,
-			"phase",
-			notification.Phase,
+		slog.Debug("webhook skipped (duplicate within TTL)",
+			"task", notification.TaskName,
+			"phase", notification.Phase,
+			"ttl", n.dedupTTL,
+			"lastSent", lastSent,
 		)
 		return nil
 	}
-	n.seen[key] = struct{}{}
+	n.seen[key] = time.Now()
 	n.mu.Unlock()
 
 	payload := openClawPayload{

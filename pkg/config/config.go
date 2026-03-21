@@ -10,6 +10,7 @@ import (
 	"path/filepath"
 	"sort"
 	"strings"
+	"time"
 
 	"github.com/bborbe/errors"
 	"gopkg.in/yaml.v3"
@@ -31,6 +32,7 @@ type Config struct {
 	Phases       []string
 	Format       string
 	WebhookToken string
+	DedupTTL     time.Duration
 }
 
 //counterfeiter:generate -o ../../mocks/config_loader.go --fake-name FakeConfigLoader . Loader
@@ -62,6 +64,7 @@ type rawConfig struct {
 	Webhook      string                   `yaml:"webhook"`
 	Format       string                   `yaml:"format"`
 	WebhookToken string                   `yaml:"webhook_token"`
+	DedupTTL     string                   `yaml:"dedup_ttl"`
 }
 
 func resolveFilePath(filePath string) (string, error) {
@@ -173,6 +176,15 @@ func (l *loader) Load(ctx context.Context) (Config, error) {
 		return Config{}, err
 	}
 
+	dedupTTL := 5 * time.Minute // default
+	if raw.DedupTTL != "" {
+		parsed, err := time.ParseDuration(raw.DedupTTL)
+		if err != nil {
+			return Config{}, errors.Wrapf(ctx, err, "parse dedup_ttl %q", raw.DedupTTL)
+		}
+		dedupTTL = parsed
+	}
+
 	return Config{
 		Vaults:       vaults,
 		Assignee:     raw.Assignee,
@@ -181,5 +193,6 @@ func (l *loader) Load(ctx context.Context) (Config, error) {
 		Webhook:      raw.Webhook,
 		Format:       format,
 		WebhookToken: raw.WebhookToken,
+		DedupTTL:     dedupTTL,
 	}, nil
 }

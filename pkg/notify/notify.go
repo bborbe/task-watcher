@@ -13,6 +13,7 @@ import (
 	"log/slog"
 	"net/http"
 	"sync"
+	"time"
 
 	"github.com/bborbe/errors"
 )
@@ -32,18 +33,20 @@ type Notifier interface {
 }
 
 // NewNotifier returns a Notifier that posts JSON to webhookURL.
-func NewNotifier(webhookURL string, httpClient *http.Client) Notifier {
+func NewNotifier(webhookURL string, httpClient *http.Client, dedupTTL time.Duration) Notifier {
 	return &notifier{
 		webhookURL: webhookURL,
 		httpClient: httpClient,
-		seen:       make(map[string]struct{}),
+		dedupTTL:   dedupTTL,
+		seen:       make(map[string]time.Time),
 	}
 }
 
 type notifier struct {
 	webhookURL string
 	httpClient *http.Client
-	seen       map[string]struct{}
+	dedupTTL   time.Duration
+	seen       map[string]time.Time
 	mu         sync.Mutex
 }
 
@@ -51,19 +54,18 @@ func (n *notifier) Notify(ctx context.Context, notification Notification) error 
 	key := notification.TaskName + ":" + notification.Phase
 
 	n.mu.Lock()
-	_, exists := n.seen[key]
-	if exists {
+	lastSent, exists := n.seen[key]
+	if exists && time.Since(lastSent) < n.dedupTTL {
 		n.mu.Unlock()
-		slog.Debug(
-			"webhook skipped (duplicate)",
-			"task",
-			notification.TaskName,
-			"phase",
-			notification.Phase,
+		slog.Debug("webhook skipped (duplicate within TTL)",
+			"task", notification.TaskName,
+			"phase", notification.Phase,
+			"ttl", n.dedupTTL,
+			"lastSent", lastSent,
 		)
 		return nil
 	}
-	n.seen[key] = struct{}{}
+	n.seen[key] = time.Now()
 	n.mu.Unlock()
 
 	body, err := json.Marshal(notification)

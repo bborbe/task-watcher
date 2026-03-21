@@ -11,6 +11,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"sync/atomic"
+	"time"
 
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
@@ -47,7 +48,7 @@ var _ = Describe("Notifier", func() {
 	})
 
 	It("sends HTTP POST with correct JSON body on success", func() {
-		n := notify.NewNotifier(server.URL, server.Client())
+		n := notify.NewNotifier(server.URL, server.Client(), time.Minute)
 		notification := notify.Notification{
 			TaskName: "my-task",
 			Phase:    "planning",
@@ -66,7 +67,7 @@ var _ = Describe("Notifier", func() {
 
 	It("returns error when server responds with 500", func() {
 		statusCode = http.StatusInternalServerError
-		n := notify.NewNotifier(server.URL, server.Client())
+		n := notify.NewNotifier(server.URL, server.Client(), time.Minute)
 		err := n.Notify(ctx, notify.Notification{
 			TaskName: "task-a",
 			Phase:    "execution",
@@ -78,7 +79,7 @@ var _ = Describe("Notifier", func() {
 
 	It("returns error when server responds with 404", func() {
 		statusCode = http.StatusNotFound
-		n := notify.NewNotifier(server.URL, server.Client())
+		n := notify.NewNotifier(server.URL, server.Client(), time.Minute)
 		err := n.Notify(ctx, notify.Notification{
 			TaskName: "task-b",
 			Phase:    "review",
@@ -89,7 +90,7 @@ var _ = Describe("Notifier", func() {
 	})
 
 	It("deduplicates: same task+phase only sends one request", func() {
-		n := notify.NewNotifier(server.URL, server.Client())
+		n := notify.NewNotifier(server.URL, server.Client(), time.Minute)
 		notification := notify.Notification{
 			TaskName: "dup-task",
 			Phase:    "planning",
@@ -101,7 +102,7 @@ var _ = Describe("Notifier", func() {
 	})
 
 	It("does not deduplicate different phases for same task", func() {
-		n := notify.NewNotifier(server.URL, server.Client())
+		n := notify.NewNotifier(server.URL, server.Client(), time.Minute)
 		Expect(n.Notify(ctx, notify.Notification{
 			TaskName: "task-x",
 			Phase:    "planning",
@@ -116,7 +117,7 @@ var _ = Describe("Notifier", func() {
 	})
 
 	It("does not deduplicate different tasks with same phase", func() {
-		n := notify.NewNotifier(server.URL, server.Client())
+		n := notify.NewNotifier(server.URL, server.Client(), time.Minute)
 		Expect(n.Notify(ctx, notify.Notification{
 			TaskName: "task-1",
 			Phase:    "planning",
@@ -127,6 +128,28 @@ var _ = Describe("Notifier", func() {
 			Phase:    "planning",
 			Assignee: "alice",
 		})).To(Succeed())
+		Expect(requestCount.Load()).To(Equal(int32(2)))
+	})
+
+	It("re-sends webhook after TTL expires", func() {
+		n := notify.NewNotifier(server.URL, server.Client(), 50*time.Millisecond)
+		notification := notify.Notification{
+			TaskName: "retry-task",
+			Phase:    "planning",
+			Assignee: "alice",
+		}
+		Expect(n.Notify(ctx, notification)).To(Succeed())
+		Expect(requestCount.Load()).To(Equal(int32(1)))
+
+		// Within TTL — should be deduped
+		Expect(n.Notify(ctx, notification)).To(Succeed())
+		Expect(requestCount.Load()).To(Equal(int32(1)))
+
+		// Wait for TTL to expire
+		time.Sleep(60 * time.Millisecond)
+
+		// After TTL — should re-send
+		Expect(n.Notify(ctx, notification)).To(Succeed())
 		Expect(requestCount.Load()).To(Equal(int32(2)))
 	})
 })

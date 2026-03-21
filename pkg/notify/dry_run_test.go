@@ -6,6 +6,7 @@ package notify_test
 
 import (
 	"context"
+	"time"
 
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
@@ -21,7 +22,11 @@ var _ = Describe("DryRunOpenClawNotifier", func() {
 
 	BeforeEach(func() {
 		ctx = context.Background()
-		n = notify.NewDryRunOpenClawNotifier("https://example.com/hooks/agent", "my-token")
+		n = notify.NewDryRunOpenClawNotifier(
+			"https://example.com/hooks/agent",
+			"my-token",
+			time.Minute,
+		)
 	})
 
 	It("returns nil on first notification", func() {
@@ -55,6 +60,23 @@ var _ = Describe("DryRunOpenClawNotifier", func() {
 			Assignee: "alice",
 		})).To(Succeed())
 	})
+
+	It("re-sends after TTL expires", func() {
+		shortTTL := notify.NewDryRunOpenClawNotifier(
+			"https://example.com/hooks/agent",
+			"token",
+			50*time.Millisecond,
+		)
+		notification := notify.Notification{
+			TaskName: "task-ttl",
+			Phase:    "planning",
+			Assignee: "alice",
+		}
+		Expect(shortTTL.Notify(ctx, notification)).To(Succeed())
+		Expect(shortTTL.Notify(ctx, notification)).To(Succeed()) // within TTL, deduped
+		time.Sleep(60 * time.Millisecond)
+		Expect(shortTTL.Notify(ctx, notification)).To(Succeed()) // after TTL, re-sends
+	})
 })
 
 var _ = Describe("DryRunNotifier", func() {
@@ -65,7 +87,7 @@ var _ = Describe("DryRunNotifier", func() {
 
 	BeforeEach(func() {
 		ctx = context.Background()
-		n = notify.NewDryRunNotifier("https://example.com/webhook")
+		n = notify.NewDryRunNotifier("https://example.com/webhook", time.Minute)
 	})
 
 	It("returns nil on first notification", func() {
@@ -103,5 +125,18 @@ var _ = Describe("DryRunNotifier", func() {
 			Phase:    "planning",
 			Assignee: "alice",
 		})).To(Succeed())
+	})
+
+	It("re-sends after TTL expires", func() {
+		shortTTL := notify.NewDryRunNotifier("https://example.com/webhook", 50*time.Millisecond)
+		notification := notify.Notification{
+			TaskName: "task-ttl",
+			Phase:    "planning",
+			Assignee: "alice",
+		}
+		Expect(shortTTL.Notify(ctx, notification)).To(Succeed())
+		Expect(shortTTL.Notify(ctx, notification)).To(Succeed()) // within TTL, deduped
+		time.Sleep(60 * time.Millisecond)
+		Expect(shortTTL.Notify(ctx, notification)).To(Succeed()) // after TTL, re-sends
 	})
 })

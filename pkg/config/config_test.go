@@ -7,6 +7,7 @@ package config_test
 import (
 	"context"
 	"os"
+	"time"
 
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
@@ -306,5 +307,32 @@ phases:
 		_, err := config.NewLoader(path).Load(ctx)
 		Expect(err).To(HaveOccurred())
 		Expect(err.Error()).To(ContainSubstring("invalid"))
+	})
+
+	It("defaults dedup_ttl to 5 minutes when not specified", func() {
+		path := writeTempConfig(validYAML)
+		DeferCleanup(os.Remove, path)
+
+		cfg, err := config.NewLoader(path).Load(ctx)
+		Expect(err).NotTo(HaveOccurred())
+		Expect(cfg.DedupTTL).To(Equal(5 * time.Minute))
+	})
+
+	It("parses valid dedup_ttl duration", func() {
+		path := writeTempConfig(validYAML + "dedup_ttl: 10m\n")
+		DeferCleanup(os.Remove, path)
+
+		cfg, err := config.NewLoader(path).Load(ctx)
+		Expect(err).NotTo(HaveOccurred())
+		Expect(cfg.DedupTTL).To(Equal(10 * time.Minute))
+	})
+
+	It("returns error when dedup_ttl is not a valid duration", func() {
+		path := writeTempConfig(validYAML + "dedup_ttl: banana\n")
+		DeferCleanup(os.Remove, path)
+
+		_, err := config.NewLoader(path).Load(ctx)
+		Expect(err).To(HaveOccurred())
+		Expect(err.Error()).To(ContainSubstring("dedup_ttl"))
 	})
 })

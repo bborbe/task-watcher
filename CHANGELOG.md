@@ -2,6 +2,10 @@
 
 All notable changes to this project will be documented in this file.
 
+## v0.15.0
+
+- feat: replace permanent dedup with TTL-based dedup — webhooks re-fire after configurable `dedup_ttl` (default 5 minutes) so missed notifications are retried
+
 ## v0.14.2
 
 - refactor: migrate OpenClaw notifier from /hooks/agent to /hooks/wake endpoint with simplified payload shape (text + mode)

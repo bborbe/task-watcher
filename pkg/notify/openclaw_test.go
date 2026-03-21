@@ -11,6 +11,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"sync/atomic"
+	"time"
 
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
@@ -50,7 +51,7 @@ var _ = Describe("OpenClawNotifier", func() {
 	})
 
 	It("sends HTTP POST with correct OpenClaw payload shape and auth header", func() {
-		n := notify.NewOpenClawNotifier(server.URL, "my-secret-token", server.Client())
+		n := notify.NewOpenClawNotifier(server.URL, "my-secret-token", server.Client(), time.Minute)
 		notification := notify.Notification{
 			TaskName: "my-task",
 			Phase:    "planning",
@@ -70,7 +71,7 @@ var _ = Describe("OpenClawNotifier", func() {
 	})
 
 	It("deduplicates: same task+phase only sends one request", func() {
-		n := notify.NewOpenClawNotifier(server.URL, "token", server.Client())
+		n := notify.NewOpenClawNotifier(server.URL, "token", server.Client(), time.Minute)
 		notification := notify.Notification{
 			TaskName: "dup-task",
 			Phase:    "planning",
@@ -83,7 +84,7 @@ var _ = Describe("OpenClawNotifier", func() {
 
 	It("returns error when server responds with non-2xx status", func() {
 		statusCode = http.StatusInternalServerError
-		n := notify.NewOpenClawNotifier(server.URL, "token", server.Client())
+		n := notify.NewOpenClawNotifier(server.URL, "token", server.Client(), time.Minute)
 		err := n.Notify(ctx, notify.Notification{
 			TaskName: "task-a",
 			Phase:    "execution",
@@ -91,5 +92,27 @@ var _ = Describe("OpenClawNotifier", func() {
 		})
 		Expect(err).To(HaveOccurred())
 		Expect(err.Error()).To(ContainSubstring("500"))
+	})
+
+	It("re-sends webhook after TTL expires", func() {
+		n := notify.NewOpenClawNotifier(server.URL, "token", server.Client(), 50*time.Millisecond)
+		notification := notify.Notification{
+			TaskName: "retry-task",
+			Phase:    "planning",
+			Assignee: "alice",
+		}
+		Expect(n.Notify(ctx, notification)).To(Succeed())
+		Expect(requestCount.Load()).To(Equal(int32(1)))
+
+		// Within TTL — should be deduped
+		Expect(n.Notify(ctx, notification)).To(Succeed())
+		Expect(requestCount.Load()).To(Equal(int32(1)))
+
+		// Wait for TTL to expire
+		time.Sleep(60 * time.Millisecond)
+
+		// After TTL — should re-send
+		Expect(n.Notify(ctx, notification)).To(Succeed())
+		Expect(requestCount.Load()).To(Equal(int32(2)))
 	})
 })
