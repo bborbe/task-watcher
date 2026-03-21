@@ -30,34 +30,44 @@ type Watcher interface {
 	Watch(ctx context.Context) error
 }
 
-// NewWatcher returns a Watcher that watches cfg.VaultPath and calls notifier for matching tasks.
+// NewWatcher returns a Watcher that watches all configured vaults and calls notifier for matching tasks.
 func NewWatcher(cfg config.Config, notifier notify.Notifier) Watcher {
-	storageConfig := &storage.Config{
-		TasksDir: "24 Tasks",
+	vaultPaths := make(map[string]string, len(cfg.Vaults))
+	taskStorages := make(map[string]taskReader, len(cfg.Vaults))
+	targets := make([]ops.WatchTarget, 0, len(cfg.Vaults))
+
+	for _, v := range cfg.Vaults {
+		vaultPaths[v.Name] = v.Path
+		taskStorages[v.Name] = storage.NewStorage(&storage.Config{TasksDir: v.TasksDir})
+		targets = append(targets, ops.WatchTarget{
+			VaultPath: v.Path,
+			VaultName: v.Name,
+			WatchDirs: []string{v.TasksDir},
+		})
 	}
+
 	return &watcher{
-		config:      cfg,
-		notifier:    notifier,
-		watchOp:     ops.NewWatchOperation(),
-		taskStorage: storage.NewStorage(storageConfig),
+		config:       cfg,
+		notifier:     notifier,
+		watchOp:      ops.NewWatchOperation(),
+		vaultPaths:   vaultPaths,
+		taskStorages: taskStorages,
+		targets:      targets,
 	}
 }
 
 type watcher struct {
-	config      config.Config
-	notifier    notify.Notifier
-	watchOp     ops.WatchOperation
-	taskStorage taskReader
+	config       config.Config
+	notifier     notify.Notifier
+	watchOp      ops.WatchOperation
+	vaultPaths   map[string]string
+	taskStorages map[string]taskReader
+	targets      []ops.WatchTarget
 }
 
-// Watch starts watching the vault tasks directory until ctx is cancelled.
+// Watch starts watching all configured vault task directories until ctx is cancelled.
 func (w *watcher) Watch(ctx context.Context) error {
-	targets := []ops.WatchTarget{{
-		VaultPath: w.config.VaultPath,
-		VaultName: "vault",
-		WatchDirs: []string{"24 Tasks"},
-	}}
-	return w.watchOp.Execute(ctx, targets, func(event ops.WatchEvent) error {
+	return w.watchOp.Execute(ctx, w.targets, func(event ops.WatchEvent) error {
 		if event.Event != "created" && event.Event != "modified" {
 			return nil
 		}
@@ -66,7 +76,17 @@ func (w *watcher) Watch(ctx context.Context) error {
 }
 
 func (w *watcher) handleEvent(ctx context.Context, event ops.WatchEvent) error {
-	task, err := w.taskStorage.ReadTask(ctx, w.config.VaultPath, domain.TaskID(event.Name))
+	vaultPath, ok := w.vaultPaths[event.Vault]
+	if !ok {
+		slog.Warn("unknown vault in event", "vault", event.Vault)
+		return nil
+	}
+	taskStorage, ok := w.taskStorages[event.Vault]
+	if !ok {
+		slog.Warn("no storage for vault", "vault", event.Vault)
+		return nil
+	}
+	task, err := taskStorage.ReadTask(ctx, vaultPath, domain.TaskID(event.Name))
 	if err != nil {
 		slog.Debug("skip unreadable task", "name", event.Name, "error", err)
 		return nil

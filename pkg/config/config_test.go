@@ -7,7 +7,6 @@ package config_test
 import (
 	"context"
 	"os"
-	"strings"
 
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
@@ -16,8 +15,10 @@ import (
 )
 
 const validYAML = `
-vault:
-  path: ~/notes/vault
+vaults:
+  personal:
+    path: ~/notes/vault
+    tasks_dir: "24 Tasks"
 assignee: alice
 statuses:
   - active
@@ -56,7 +57,48 @@ var _ = Describe("Loader", func() {
 		Expect(cfg.Webhook).To(Equal("https://hooks.example.com/notify"))
 	})
 
-	It("expands ~/ in vault path", func() {
+	It("parses single vault with name, path and tasks_dir", func() {
+		path := writeTempConfig(validYAML)
+		DeferCleanup(os.Remove, path)
+
+		cfg, err := config.NewLoader(path).Load(ctx)
+		Expect(err).NotTo(HaveOccurred())
+		Expect(cfg.Vaults).To(HaveLen(1))
+		Expect(cfg.Vaults[0].Name).To(Equal("personal"))
+		Expect(cfg.Vaults[0].TasksDir).To(Equal("24 Tasks"))
+	})
+
+	It("parses multiple vaults", func() {
+		yaml := `
+vaults:
+  personal:
+    path: /tmp/personal
+    tasks_dir: "24 Tasks"
+  octopus:
+    path: /tmp/octopus
+    tasks_dir: "Tasks"
+assignee: alice
+statuses:
+  - active
+phases:
+  - planning
+webhook: https://hooks.example.com/notify
+`
+		path := writeTempConfig(yaml)
+		DeferCleanup(os.Remove, path)
+
+		cfg, err := config.NewLoader(path).Load(ctx)
+		Expect(err).NotTo(HaveOccurred())
+		Expect(cfg.Vaults).To(HaveLen(2))
+
+		names := make([]string, len(cfg.Vaults))
+		for i, v := range cfg.Vaults {
+			names[i] = v.Name
+		}
+		Expect(names).To(ConsistOf("personal", "octopus"))
+	})
+
+	It("expands ~/ in each vault path", func() {
 		path := writeTempConfig(validYAML)
 		DeferCleanup(os.Remove, path)
 
@@ -65,9 +107,10 @@ var _ = Describe("Loader", func() {
 
 		home, err := os.UserHomeDir()
 		Expect(err).NotTo(HaveOccurred())
-		Expect(cfg.VaultPath).To(HavePrefix(home))
-		Expect(cfg.VaultPath).NotTo(ContainSubstring("~"))
-		Expect(strings.HasPrefix(cfg.VaultPath, home+"/notes/vault")).To(BeTrue())
+		for _, v := range cfg.Vaults {
+			Expect(v.Path).To(HavePrefix(home))
+			Expect(v.Path).NotTo(ContainSubstring("~"))
+		}
 	})
 
 	It("returns error when file does not exist", func() {
@@ -86,7 +129,7 @@ var _ = Describe("Loader", func() {
 		Expect(err.Error()).To(ContainSubstring(expectedPath))
 	})
 
-	It("returns error when vault.path is missing", func() {
+	It("returns error when vaults map is empty", func() {
 		path := writeTempConfig(`
 assignee: alice
 statuses:
@@ -99,13 +142,53 @@ webhook: https://hooks.example.com/notify
 
 		_, err := config.NewLoader(path).Load(ctx)
 		Expect(err).To(HaveOccurred())
-		Expect(err.Error()).To(ContainSubstring("vault.path"))
+		Expect(err.Error()).To(ContainSubstring("vaults"))
+	})
+
+	It("returns error when a vault is missing path", func() {
+		path := writeTempConfig(`
+vaults:
+  personal:
+    tasks_dir: "24 Tasks"
+assignee: alice
+statuses:
+  - active
+phases:
+  - planning
+webhook: https://hooks.example.com/notify
+`)
+		DeferCleanup(os.Remove, path)
+
+		_, err := config.NewLoader(path).Load(ctx)
+		Expect(err).To(HaveOccurred())
+		Expect(err.Error()).To(ContainSubstring("path"))
+	})
+
+	It("returns error when a vault is missing tasks_dir", func() {
+		path := writeTempConfig(`
+vaults:
+  personal:
+    path: /tmp/vault
+assignee: alice
+statuses:
+  - active
+phases:
+  - planning
+webhook: https://hooks.example.com/notify
+`)
+		DeferCleanup(os.Remove, path)
+
+		_, err := config.NewLoader(path).Load(ctx)
+		Expect(err).To(HaveOccurred())
+		Expect(err.Error()).To(ContainSubstring("tasks_dir"))
 	})
 
 	It("returns error when assignee is missing", func() {
 		path := writeTempConfig(`
-vault:
-  path: ~/notes
+vaults:
+  personal:
+    path: ~/notes
+    tasks_dir: "24 Tasks"
 statuses:
   - active
 phases:
@@ -121,8 +204,10 @@ webhook: https://hooks.example.com/notify
 
 	It("returns error when statuses is empty", func() {
 		path := writeTempConfig(`
-vault:
-  path: ~/notes
+vaults:
+  personal:
+    path: ~/notes
+    tasks_dir: "24 Tasks"
 assignee: alice
 phases:
   - planning
@@ -137,8 +222,10 @@ webhook: https://hooks.example.com/notify
 
 	It("returns error when phases is empty", func() {
 		path := writeTempConfig(`
-vault:
-  path: ~/notes
+vaults:
+  personal:
+    path: ~/notes
+    tasks_dir: "24 Tasks"
 assignee: alice
 statuses:
   - active
@@ -153,8 +240,10 @@ webhook: https://hooks.example.com/notify
 
 	It("returns error when webhook is missing", func() {
 		path := writeTempConfig(`
-vault:
-  path: ~/notes
+vaults:
+  personal:
+    path: ~/notes
+    tasks_dir: "24 Tasks"
 assignee: alice
 statuses:
   - active

@@ -40,11 +40,13 @@ var _ = Describe("Factory", func() {
 	Describe("CreateWatcher", func() {
 		It("returns a non-nil watcher.Watcher", func() {
 			cfg := config.Config{
-				VaultPath: "/vault",
-				Assignee:  "user",
-				Statuses:  []string{"active"},
-				Phases:    []string{"phase1"},
-				Webhook:   "http://example.com",
+				Vaults: []config.VaultConfig{
+					{Name: "testvault", Path: "/vault", TasksDir: "24 Tasks"},
+				},
+				Assignee: "user",
+				Statuses: []string{"active"},
+				Phases:   []string{"phase1"},
+				Webhook:  "http://example.com",
 			}
 			notifier := &mocks.FakeNotifier{}
 			result := factory.CreateWatcher(cfg, notifier)

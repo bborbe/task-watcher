@@ -66,15 +66,10 @@ func Run(ctx context.Context, args []string) error {
 				return fmt.Errorf("load config: %w", err)
 			}
 
-			slog.Info(
-				"task-watcher starting",
-				"vaultPath",
-				cfg.VaultPath,
-				"assignee",
-				cfg.Assignee,
-				"dryRun",
-				dryRun,
-			)
+			slog.Info("task-watcher starting", "assignee", cfg.Assignee, "dryRun", dryRun)
+			for _, v := range cfg.Vaults {
+				slog.Info("watching vault", "name", v.Name, "path", v.Path, "tasksDir", v.TasksDir)
+			}
 
 			notifier := buildNotifier(cfg, dryRun)
 			w := factory.CreateWatcher(cfg, notifier)
