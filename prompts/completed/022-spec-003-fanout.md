@@ -1,8 +1,13 @@
 ---
-status: approved
+status: completed
 spec: ["003"]
+summary: 'Wired multi-watcher fan-out: refactored watcher to fan out events to all watcherEntry pairs with per-watcher filters, rewrote factory with CreateNotifiers/CreateWatcher, removed --dry-run flag from CLI, added fan-out tests'
+container: task-watcher-022-spec-003-fanout
+dark-factory-version: v0.67.3-dirty
 created: "2026-03-22T10:00:00Z"
 queued: "2026-03-22T11:25:01Z"
+started: "2026-03-22T11:39:25Z"
+completed: "2026-03-22T11:45:48Z"
 branch: dark-factory/multi-watcher-config
 ---
 
