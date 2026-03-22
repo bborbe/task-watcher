@@ -15,9 +15,7 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"github.com/bborbe/task-watcher/pkg/config"
 	"github.com/bborbe/task-watcher/pkg/factory"
-	"github.com/bborbe/task-watcher/pkg/notify"
 )
 
 var version = "dev"
@@ -48,7 +46,6 @@ func Execute() {
 func Run(ctx context.Context, args []string) error {
 	var configPath string
 	var verbose bool
-	var dryRun bool
 
 	rootCmd := &cobra.Command{
 		Use:          "task-watcher",
@@ -66,19 +63,24 @@ func Run(ctx context.Context, args []string) error {
 				return fmt.Errorf("load config: %w", err)
 			}
 
-			slog.Info(
-				"task-watcher starting",
-				"version",
-				version,
-				"dryRun",
-				dryRun,
-			)
+			slog.Info("task-watcher starting", "version", version)
 			for _, v := range cfg.Vaults {
 				slog.Info("watching vault", "name", v.Name, "path", v.Path, "tasksDir", v.TasksDir)
 			}
+			for _, w := range cfg.Watchers {
+				slog.Info(
+					"configured watcher",
+					"name",
+					w.Name,
+					"type",
+					w.Type,
+					"assignee",
+					w.Assignee,
+				)
+			}
 
-			notifier := buildNotifier(cfg, dryRun)
-			w := factory.CreateWatcher(cfg, notifier)
+			notifiers := factory.CreateNotifiers(cfg)
+			w := factory.CreateWatcher(cfg, notifiers)
 
 			errCh := make(chan error, 1)
 			go func() {
@@ -107,15 +109,7 @@ func Run(ctx context.Context, args []string) error {
 	rootCmd.Flags().
 		StringVar(&configPath, "config", "", "path to config YAML file (default: ~/.task-watcher/config.yaml)")
 	rootCmd.Flags().BoolVar(&verbose, "verbose", false, "enable debug logging")
-	rootCmd.Flags().
-		BoolVar(&dryRun, "dry-run", false, "log notifications instead of sending HTTP webhooks")
 
 	rootCmd.SetArgs(args)
 	return rootCmd.ExecuteContext(ctx)
-}
-
-// buildNotifier selects the appropriate notifier based on dry-run mode.
-// TODO(spec-003): per-watcher notifier selection will be added in the fanout prompt.
-func buildNotifier(cfg config.Config, _ bool) notify.Notifier {
-	return factory.CreateNotifier(cfg)
 }

@@ -8,9 +8,9 @@ import (
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 
-	"github.com/bborbe/task-watcher/mocks"
 	"github.com/bborbe/task-watcher/pkg/config"
 	"github.com/bborbe/task-watcher/pkg/factory"
+	"github.com/bborbe/task-watcher/pkg/notify"
 )
 
 var _ = Describe("Factory", func() {
@@ -19,21 +19,51 @@ var _ = Describe("Factory", func() {
 			result := factory.CreateConfigLoader("/some/path")
 			Expect(result).NotTo(BeNil())
 		})
-	})
 
-	Describe("CreateNotifier", func() {
-		It("returns a notify.Notifier (stub)", func() {
-			cfg := config.Config{}
-			// TODO(spec-003): stub returns nil until fanout prompt wires per-watcher notifiers
-			_ = factory.CreateNotifier(cfg)
+		It("returns a non-nil config.Loader for empty path", func() {
+			result := factory.CreateConfigLoader("")
+			Expect(result).NotTo(BeNil())
 		})
 	})
 
-	Describe("CreateLogNotifier", func() {
-		It("returns a non-nil notify.Notifier", func() {
+	Describe("CreateNotifiers", func() {
+		It("returns empty slice when no watchers configured", func() {
 			cfg := config.Config{}
-			result := factory.CreateLogNotifier(cfg)
-			Expect(result).NotTo(BeNil())
+			result := factory.CreateNotifiers(cfg)
+			Expect(result).To(HaveLen(0))
+		})
+
+		It("returns slice of length 1 with non-nil element for openclaw-wake watcher", func() {
+			cfg := config.Config{
+				Watchers: []config.WatcherConfig{
+					{Name: "w1", Type: "openclaw-wake", URL: "http://example.com", Token: "tok"},
+				},
+			}
+			result := factory.CreateNotifiers(cfg)
+			Expect(result).To(HaveLen(1))
+			Expect(result[0]).NotTo(BeNil())
+		})
+
+		It("returns slice of length 1 with non-nil element for telegram watcher", func() {
+			cfg := config.Config{
+				Watchers: []config.WatcherConfig{
+					{Name: "w1", Type: "telegram", Token: "tok", ChatID: "123"},
+				},
+			}
+			result := factory.CreateNotifiers(cfg)
+			Expect(result).To(HaveLen(1))
+			Expect(result[0]).NotTo(BeNil())
+		})
+
+		It("returns slice of length 1 with non-nil element for log watcher", func() {
+			cfg := config.Config{
+				Watchers: []config.WatcherConfig{
+					{Name: "w1", Type: "log"},
+				},
+			}
+			result := factory.CreateNotifiers(cfg)
+			Expect(result).To(HaveLen(1))
+			Expect(result[0]).NotTo(BeNil())
 		})
 	})
 
@@ -43,9 +73,12 @@ var _ = Describe("Factory", func() {
 				Vaults: []config.VaultConfig{
 					{Name: "testvault", Path: "/vault", TasksDir: "24 Tasks"},
 				},
+				Watchers: []config.WatcherConfig{
+					{Name: "test", Type: "log"},
+				},
 			}
-			notifier := &mocks.FakeNotifier{}
-			result := factory.CreateWatcher(cfg, notifier)
+			notifiers := []notify.Notifier{factory.CreateNotifiers(cfg)[0]}
+			result := factory.CreateWatcher(cfg, notifiers)
 			Expect(result).NotTo(BeNil())
 		})
 	})

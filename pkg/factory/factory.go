@@ -5,6 +5,8 @@
 package factory
 
 import (
+	"net/http"
+
 	"github.com/bborbe/task-watcher/pkg/config"
 	"github.com/bborbe/task-watcher/pkg/notify"
 	"github.com/bborbe/task-watcher/pkg/watcher"
@@ -16,27 +18,34 @@ func CreateConfigLoader(filePath string) config.Loader {
 	return config.NewLoader(filePath)
 }
 
-// CreateNotifier constructs a notify.Notifier from a validated config.
-// TODO(spec-003): per-watcher notifier selection will be added in the fanout prompt.
-func CreateNotifier(_ config.Config) notify.Notifier {
-	return nil
+// CreateNotifiers builds one Notifier per WatcherConfig entry in the order they appear.
+// Pure composition: no network calls at construction time.
+func CreateNotifiers(cfg config.Config) []notify.Notifier {
+	notifiers := make([]notify.Notifier, len(cfg.Watchers))
+	for i, w := range cfg.Watchers {
+		notifiers[i] = createNotifierForWatcher(w)
+	}
+	return notifiers
 }
 
-// CreateLogNotifier constructs a notify.Notifier that logs instead of sending HTTP requests.
-// TODO(spec-003): per-watcher notifier selection will be added in the fanout prompt.
-func CreateLogNotifier(_ config.Config) notify.Notifier {
-	return notify.NewLogNotifier(0)
-}
-
-// CreateOpenClawNotifier constructs a notify.Notifier that sends OpenClaw-formatted payloads.
-// TODO(spec-003): per-watcher notifier selection will be added in the fanout prompt.
-func CreateOpenClawNotifier(_ config.Config) notify.Notifier {
-	return nil
-}
-
-// CreateWatcher constructs a watcher.Watcher that observes the vault and
-// forwards matching task events to the notifier.
+// CreateWatcher constructs a watcher.Watcher that observes all configured vaults
+// and fans out matching task events to all watcher entries.
 // Pure composition: no filesystem access at construction time.
-func CreateWatcher(cfg config.Config, notifier notify.Notifier) watcher.Watcher {
-	return watcher.NewWatcher(cfg, notifier)
+func CreateWatcher(cfg config.Config, notifiers []notify.Notifier) watcher.Watcher {
+	return watcher.NewWatcher(cfg, notifiers)
+}
+
+// createNotifierForWatcher instantiates the correct Notifier implementation based on watcher type.
+func createNotifierForWatcher(w config.WatcherConfig) notify.Notifier {
+	switch w.Type {
+	case "openclaw-wake":
+		return notify.NewOpenClawNotifier(w.URL, w.Token, http.DefaultClient, w.DedupTTL)
+	case "telegram":
+		return notify.NewTelegramNotifier(w.Token, w.ChatID, http.DefaultClient, w.DedupTTL)
+	case "log":
+		return notify.NewLogNotifier(w.DedupTTL)
+	default:
+		// Should never reach here — validated in config.Load
+		panic("unknown watcher type: " + w.Type)
+	}
 }

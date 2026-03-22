@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented in this file.
 
+## v0.18.0
+
+- feat: Fan out vault events to all configured watchers with per-watcher filter and dedup
+- refactor: Remove --dry-run flag (use log action type in config instead)
+
 ## v0.17.0
 
 - feat: add Telegram Bot API notifier (`pkg/notify/telegram.go`) with TTL-based dedup and token-safe logging

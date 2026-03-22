@@ -6,6 +6,7 @@ package watcher_test
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -16,6 +17,7 @@ import (
 
 	mocknotify "github.com/bborbe/task-watcher/mocks"
 	"github.com/bborbe/task-watcher/pkg/config"
+	"github.com/bborbe/task-watcher/pkg/notify"
 	"github.com/bborbe/task-watcher/pkg/watcher"
 )
 
@@ -53,9 +55,12 @@ var _ = Describe("Watcher", func() {
 			Vaults: []config.VaultConfig{
 				{Name: "testvault", Path: vaultDir, TasksDir: "24 Tasks"},
 			},
+			Watchers: []config.WatcherConfig{
+				{Name: "test", Type: "log"},
+			},
 		}
 		fakeNotifier = &mocknotify.FakeNotifier{}
-		w = watcher.NewWatcher(cfg, fakeNotifier)
+		w = watcher.NewWatcher(cfg, []notify.Notifier{fakeNotifier})
 
 		watchDone = make(chan error, 1)
 		go func() { watchDone <- w.Watch(ctx) }()
@@ -136,9 +141,12 @@ var _ = Describe("Watcher multi-vault", func() {
 				{Name: "vault1", Path: vault1Dir, TasksDir: "24 Tasks"},
 				{Name: "vault2", Path: vault2Dir, TasksDir: "Tasks"},
 			},
+			Watchers: []config.WatcherConfig{
+				{Name: "test", Type: "log"},
+			},
 		}
 		fakeNotifier = &mocknotify.FakeNotifier{}
-		w = watcher.NewWatcher(cfg, fakeNotifier)
+		w = watcher.NewWatcher(cfg, []notify.Notifier{fakeNotifier})
 
 		watchDone = make(chan error, 1)
 		go func() { watchDone <- w.Watch(ctx) }()
@@ -180,5 +188,149 @@ var _ = Describe("Watcher multi-vault", func() {
 		Eventually(func() int {
 			return fakeNotifier.NotifyCallCount()
 		}, "500ms", "20ms").Should(Equal(2))
+	})
+})
+
+var _ = Describe("Watcher fan-out", func() {
+	var (
+		ctx       context.Context
+		cancel    context.CancelFunc
+		vaultDir  string
+		tasksDir  string
+		watchDone chan error
+	)
+
+	BeforeEach(func() {
+		ctx, cancel = context.WithCancel(context.Background())
+		var err error
+		vaultDir, err = os.MkdirTemp("", "vault-fanout-*")
+		Expect(err).NotTo(HaveOccurred())
+		tasksDir = filepath.Join(vaultDir, "Tasks")
+		Expect(os.MkdirAll(tasksDir, 0750)).To(Succeed())
+	})
+
+	AfterEach(func() {
+		cancel()
+		select {
+		case <-watchDone:
+		case <-time.After(2 * time.Second):
+			Fail("Watch did not return after context cancellation")
+		}
+		Expect(os.RemoveAll(vaultDir)).To(Succeed())
+	})
+
+	startWatcher := func(cfg config.Config, notifiers []notify.Notifier) {
+		w := watcher.NewWatcher(cfg, notifiers)
+		watchDone = make(chan error, 1)
+		go func() { watchDone <- w.Watch(ctx) }()
+		time.Sleep(100 * time.Millisecond)
+	}
+
+	It("calls both notifiers when task matches both watcher entries", func() {
+		fake1 := &mocknotify.FakeNotifier{}
+		fake2 := &mocknotify.FakeNotifier{}
+		cfg := config.Config{
+			Vaults: []config.VaultConfig{
+				{Name: "v", Path: vaultDir, TasksDir: "Tasks"},
+			},
+			Watchers: []config.WatcherConfig{
+				{Name: "w1", Type: "log"},
+				{Name: "w2", Type: "log"},
+			},
+		}
+		startWatcher(cfg, []notify.Notifier{fake1, fake2})
+
+		writeTask(tasksDir, "both-task", "Alice", "in_progress", "planning")
+		Eventually(func() int { return fake1.NotifyCallCount() }, "500ms", "20ms").Should(Equal(1))
+		Eventually(func() int { return fake2.NotifyCallCount() }, "500ms", "20ms").Should(Equal(1))
+	})
+
+	It("calls only the matching notifier when task matches only one entry", func() {
+		fake1 := &mocknotify.FakeNotifier{}
+		fake2 := &mocknotify.FakeNotifier{}
+		cfg := config.Config{
+			Vaults: []config.VaultConfig{
+				{Name: "v", Path: vaultDir, TasksDir: "Tasks"},
+			},
+			Watchers: []config.WatcherConfig{
+				{Name: "w1", Type: "log", Assignee: "Alice"},
+				{Name: "w2", Type: "log", Assignee: "Bob"},
+			},
+		}
+		startWatcher(cfg, []notify.Notifier{fake1, fake2})
+
+		writeTask(tasksDir, "alice-task", "Alice", "in_progress", "planning")
+		Eventually(func() int { return fake1.NotifyCallCount() }, "500ms", "20ms").Should(Equal(1))
+		Consistently(
+			func() int { return fake2.NotifyCallCount() },
+			"200ms",
+			"20ms",
+		).Should(Equal(0))
+	})
+
+	It("calls second notifier even when first notifier returns an error", func() {
+		fake1 := &mocknotify.FakeNotifier{}
+		fake2 := &mocknotify.FakeNotifier{}
+		fake1.NotifyReturns(errors.New("notifier 1 failed"))
+		cfg := config.Config{
+			Vaults: []config.VaultConfig{
+				{Name: "v", Path: vaultDir, TasksDir: "Tasks"},
+			},
+			Watchers: []config.WatcherConfig{
+				{Name: "w1", Type: "log"},
+				{Name: "w2", Type: "log"},
+			},
+		}
+		startWatcher(cfg, []notify.Notifier{fake1, fake2})
+
+		writeTask(tasksDir, "error-task", "Alice", "in_progress", "planning")
+		Eventually(func() int { return fake1.NotifyCallCount() }, "500ms", "20ms").Should(Equal(1))
+		Eventually(func() int { return fake2.NotifyCallCount() }, "500ms", "20ms").Should(Equal(1))
+	})
+
+	It("skips entry when task assignee does not match per-watcher assignee filter", func() {
+		fake1 := &mocknotify.FakeNotifier{}
+		fake2 := &mocknotify.FakeNotifier{}
+		cfg := config.Config{
+			Vaults: []config.VaultConfig{
+				{Name: "v", Path: vaultDir, TasksDir: "Tasks"},
+			},
+			Watchers: []config.WatcherConfig{
+				{Name: "w1", Type: "log", Assignee: "WrongUser"},
+				{Name: "w2", Type: "log"},
+			},
+		}
+		startWatcher(cfg, []notify.Notifier{fake1, fake2})
+
+		writeTask(tasksDir, "assignee-task", "Alice", "in_progress", "planning")
+		Consistently(
+			func() int { return fake1.NotifyCallCount() },
+			"200ms",
+			"20ms",
+		).Should(Equal(0))
+		Eventually(func() int { return fake2.NotifyCallCount() }, "500ms", "20ms").Should(Equal(1))
+	})
+
+	It("skips entry when task phase does not match per-watcher phase filter", func() {
+		fake1 := &mocknotify.FakeNotifier{}
+		fake2 := &mocknotify.FakeNotifier{}
+		cfg := config.Config{
+			Vaults: []config.VaultConfig{
+				{Name: "v", Path: vaultDir, TasksDir: "Tasks"},
+			},
+			Watchers: []config.WatcherConfig{
+				{Name: "w1", Type: "log", Phases: []string{"execution"}},
+				{Name: "w2", Type: "log"},
+			},
+		}
+		startWatcher(cfg, []notify.Notifier{fake1, fake2})
+
+		writeTask(tasksDir, "phase-task", "Alice", "in_progress", "planning")
+		Consistently(
+			func() int { return fake1.NotifyCallCount() },
+			"200ms",
+			"20ms",
+		).Should(Equal(0))
+		Eventually(func() int { return fake2.NotifyCallCount() }, "500ms", "20ms").Should(Equal(1))
 	})
 })
