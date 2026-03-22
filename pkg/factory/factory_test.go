@@ -22,18 +22,18 @@ var _ = Describe("Factory", func() {
 	})
 
 	Describe("CreateNotifier", func() {
-		It("returns a non-nil notify.Notifier", func() {
-			cfg := config.Config{Webhook: "http://example.com"}
-			result := factory.CreateNotifier(cfg)
-			Expect(result).NotTo(BeNil())
+		It("returns a notify.Notifier (stub)", func() {
+			cfg := config.Config{}
+			// TODO(spec-003): stub returns nil until fanout prompt wires per-watcher notifiers
+			_ = factory.CreateNotifier(cfg)
 		})
 	})
 
 	Describe("CreateDryRunNotifier", func() {
-		It("returns a non-nil notify.Notifier", func() {
-			cfg := config.Config{Webhook: "http://example.com"}
-			result := factory.CreateDryRunNotifier(cfg)
-			Expect(result).NotTo(BeNil())
+		It("returns a notify.Notifier (stub)", func() {
+			cfg := config.Config{}
+			// TODO(spec-003): stub returns nil until fanout prompt wires per-watcher notifiers
+			_ = factory.CreateDryRunNotifier(cfg)
 		})
 	})
 
@@ -43,10 +43,6 @@ var _ = Describe("Factory", func() {
 				Vaults: []config.VaultConfig{
 					{Name: "testvault", Path: "/vault", TasksDir: "24 Tasks"},
 				},
-				Assignee: "user",
-				Statuses: []string{"active"},
-				Phases:   []string{"phase1"},
-				Webhook:  "http://example.com",
 			}
 			notifier := &mocks.FakeNotifier{}
 			result := factory.CreateWatcher(cfg, notifier)

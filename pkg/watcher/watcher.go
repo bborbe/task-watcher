@@ -7,7 +7,6 @@ package watcher
 import (
 	"context"
 	"log/slog"
-	"slices"
 
 	"github.com/bborbe/errors"
 	"github.com/bborbe/vault-cli/pkg/domain"
@@ -47,7 +46,6 @@ func NewWatcher(cfg config.Config, notifier notify.Notifier) Watcher {
 	}
 
 	return &watcher{
-		config:       cfg,
 		notifier:     notifier,
 		watchOp:      ops.NewWatchOperation(),
 		vaultPaths:   vaultPaths,
@@ -57,7 +55,6 @@ func NewWatcher(cfg config.Config, notifier notify.Notifier) Watcher {
 }
 
 type watcher struct {
-	config       config.Config
 	notifier     notify.Notifier
 	watchOp      ops.WatchOperation
 	vaultPaths   map[string]string
@@ -94,15 +91,7 @@ func (w *watcher) handleEvent(ctx context.Context, event ops.WatchEvent) error {
 	if task.Assignee == "" || task.Status == "" || task.Phase == nil {
 		return nil
 	}
-	if task.Assignee != w.config.Assignee {
-		return nil
-	}
-	if !containsString(w.config.Statuses, string(task.Status)) {
-		return nil
-	}
-	if !containsString(w.config.Phases, string(*task.Phase)) {
-		return nil
-	}
+	// TODO(spec-003): per-watcher filter will be added in the fanout prompt
 	if err := w.notifier.Notify(ctx, notify.Notification{
 		TaskName: task.Name,
 		Phase:    string(*task.Phase),
@@ -111,8 +100,4 @@ func (w *watcher) handleEvent(ctx context.Context, event ops.WatchEvent) error {
 		return errors.Wrapf(ctx, err, "notify task %s phase %s", task.Name, string(*task.Phase))
 	}
 	return nil
-}
-
-func containsString(slice []string, s string) bool {
-	return slices.Contains(slice, s)
 }

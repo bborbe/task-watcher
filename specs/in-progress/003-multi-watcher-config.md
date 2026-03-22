@@ -1,6 +1,7 @@
 ---
-status: approved
+status: prompted
 approved: "2026-03-22T10:46:42Z"
+prompted: "2026-03-22T11:07:46Z"
 branch: dark-factory/multi-watcher-config
 ---
 

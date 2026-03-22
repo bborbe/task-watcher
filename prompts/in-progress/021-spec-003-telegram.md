@@ -1,7 +1,8 @@
 ---
-status: created
+status: approved
 spec: ["003"]
 created: "2026-03-22T10:00:00Z"
+queued: "2026-03-22T11:25:01Z"
 branch: dark-factory/multi-watcher-config
 ---
 

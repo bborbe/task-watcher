@@ -70,8 +70,6 @@ func Run(ctx context.Context, args []string) error {
 				"task-watcher starting",
 				"version",
 				version,
-				"assignee",
-				cfg.Assignee,
 				"dryRun",
 				dryRun,
 			)
@@ -116,16 +114,8 @@ func Run(ctx context.Context, args []string) error {
 	return rootCmd.ExecuteContext(ctx)
 }
 
-// buildNotifier selects the appropriate notifier based on format and dry-run mode.
-func buildNotifier(cfg config.Config, dryRun bool) notify.Notifier {
-	if cfg.Format == "openclaw" {
-		if dryRun {
-			return factory.CreateDryRunOpenClawNotifier(cfg)
-		}
-		return factory.CreateOpenClawNotifier(cfg)
-	}
-	if dryRun {
-		return factory.CreateDryRunNotifier(cfg)
-	}
+// buildNotifier selects the appropriate notifier based on dry-run mode.
+// TODO(spec-003): per-watcher notifier selection will be added in the fanout prompt.
+func buildNotifier(cfg config.Config, _ bool) notify.Notifier {
 	return factory.CreateNotifier(cfg)
 }

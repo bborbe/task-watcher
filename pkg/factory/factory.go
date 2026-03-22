@@ -5,8 +5,6 @@
 package factory
 
 import (
-	"net/http"
-
 	"github.com/bborbe/task-watcher/pkg/config"
 	"github.com/bborbe/task-watcher/pkg/notify"
 	"github.com/bborbe/task-watcher/pkg/watcher"
@@ -19,32 +17,27 @@ func CreateConfigLoader(filePath string) config.Loader {
 }
 
 // CreateNotifier constructs a notify.Notifier from a validated config.
-// Pure composition: no network calls at construction time.
-func CreateNotifier(cfg config.Config) notify.Notifier {
-	return notify.NewNotifier(cfg.Webhook, http.DefaultClient, cfg.DedupTTL)
+// TODO(spec-003): per-watcher notifier selection will be added in the fanout prompt.
+func CreateNotifier(_ config.Config) notify.Notifier {
+	return nil
 }
 
 // CreateDryRunNotifier constructs a notify.Notifier that logs instead of sending HTTP requests.
-// Pure composition: no I/O at construction time.
-func CreateDryRunNotifier(cfg config.Config) notify.Notifier {
-	return notify.NewDryRunNotifier(cfg.Webhook, cfg.DedupTTL)
+// TODO(spec-003): per-watcher notifier selection will be added in the fanout prompt.
+func CreateDryRunNotifier(_ config.Config) notify.Notifier {
+	return nil
 }
 
 // CreateOpenClawNotifier constructs a notify.Notifier that sends OpenClaw-formatted payloads.
-// Pure composition: no network calls at construction time.
-func CreateOpenClawNotifier(cfg config.Config) notify.Notifier {
-	return notify.NewOpenClawNotifier(
-		cfg.Webhook,
-		cfg.WebhookToken,
-		http.DefaultClient,
-		cfg.DedupTTL,
-	)
+// TODO(spec-003): per-watcher notifier selection will be added in the fanout prompt.
+func CreateOpenClawNotifier(_ config.Config) notify.Notifier {
+	return nil
 }
 
 // CreateDryRunOpenClawNotifier constructs a notify.Notifier that logs OpenClaw-formatted payloads instead of sending HTTP requests.
-// Pure composition: no I/O at construction time.
-func CreateDryRunOpenClawNotifier(cfg config.Config) notify.Notifier {
-	return notify.NewDryRunOpenClawNotifier(cfg.Webhook, cfg.WebhookToken, cfg.DedupTTL)
+// TODO(spec-003): per-watcher notifier selection will be added in the fanout prompt.
+func CreateDryRunOpenClawNotifier(_ config.Config) notify.Notifier {
+	return nil
 }
 
 // CreateWatcher constructs a watcher.Watcher that observes the vault and

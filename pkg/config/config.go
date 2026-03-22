@@ -23,16 +23,25 @@ type VaultConfig struct {
 	TasksDir string
 }
 
+// WatcherConfig holds the configuration for a single watcher entry.
+type WatcherConfig struct {
+	Name     string
+	Type     string
+	Assignee string
+	Statuses []string
+	Phases   []string
+	DedupTTL time.Duration
+	// openclaw-wake fields
+	URL   string
+	Token string
+	// telegram fields
+	ChatID string
+}
+
 // Config holds the parsed task-watcher configuration.
 type Config struct {
-	Vaults       []VaultConfig
-	Assignee     string
-	Statuses     []string
-	Webhook      string
-	Phases       []string
-	Format       string
-	WebhookToken string
-	DedupTTL     time.Duration
+	Vaults   []VaultConfig
+	Watchers []WatcherConfig
 }
 
 //counterfeiter:generate -o ../../mocks/config_loader.go --fake-name FakeConfigLoader . Loader
@@ -56,15 +65,29 @@ type rawVaultEntry struct {
 	TasksDir string `yaml:"tasks_dir"`
 }
 
+type rawWatcherEntry struct {
+	Name     string   `yaml:"name"`
+	Type     string   `yaml:"type"`
+	Assignee string   `yaml:"assignee"`
+	Statuses []string `yaml:"statuses"`
+	Phases   []string `yaml:"phases"`
+	DedupTTL string   `yaml:"dedup_ttl"`
+	URL      string   `yaml:"url"`
+	Token    string   `yaml:"token"`
+	ChatID   string   `yaml:"chat_id"`
+}
+
 type rawConfig struct {
-	Vaults       map[string]rawVaultEntry `yaml:"vaults"`
-	Assignee     string                   `yaml:"assignee"`
-	Statuses     []string                 `yaml:"statuses"`
-	Phases       []string                 `yaml:"phases"`
-	Webhook      string                   `yaml:"webhook"`
-	Format       string                   `yaml:"format"`
-	WebhookToken string                   `yaml:"webhook_token"`
-	DedupTTL     string                   `yaml:"dedup_ttl"`
+	Vaults   map[string]rawVaultEntry `yaml:"vaults"`
+	Watchers []rawWatcherEntry        `yaml:"watchers"`
+	// Old flat fields — present only for migration error detection
+	Assignee     string   `yaml:"assignee"`
+	Webhook      string   `yaml:"webhook"`
+	Format       string   `yaml:"format"`
+	WebhookToken string   `yaml:"webhook_token"`
+	Statuses     []string `yaml:"statuses"`
+	Phases       []string `yaml:"phases"`
+	OldDedupTTL  string   `yaml:"dedup_ttl"`
 }
 
 func resolveFilePath(filePath string) (string, error) {
@@ -76,24 +99,6 @@ func resolveFilePath(filePath string) (string, error) {
 		return "", err
 	}
 	return filepath.Join(homeDir, ".task-watcher", "config.yaml"), nil
-}
-
-func parseFormat(ctx context.Context, raw rawConfig) (string, error) {
-	format := raw.Format
-	if format == "" {
-		format = "generic"
-	}
-	if format != "generic" && format != "openclaw" {
-		return "", errors.Errorf(
-			ctx,
-			"invalid format %q: must be \"generic\" or \"openclaw\"",
-			format,
-		)
-	}
-	if format == "openclaw" && raw.WebhookToken == "" {
-		return "", errors.Errorf(ctx, "webhook_token is required when format is \"openclaw\"")
-	}
-	return format, nil
 }
 
 func parseVaults(ctx context.Context, rawVaults map[string]rawVaultEntry) ([]VaultConfig, error) {
@@ -132,6 +137,94 @@ func expandHome(path string, homeDir *string) (string, error) {
 	return *homeDir + path[1:], nil
 }
 
+func validateWatcherType(ctx context.Context, rw rawWatcherEntry) error {
+	switch rw.Type {
+	case "openclaw-wake":
+		if rw.URL == "" {
+			return errors.Errorf(
+				ctx,
+				"watcher %q (openclaw-wake): missing required field: url",
+				rw.Name,
+			)
+		}
+		if rw.Token == "" {
+			return errors.Errorf(
+				ctx,
+				"watcher %q (openclaw-wake): missing required field: token",
+				rw.Name,
+			)
+		}
+	case "telegram":
+		if rw.Token == "" {
+			return errors.Errorf(
+				ctx,
+				"watcher %q (telegram): missing required field: token",
+				rw.Name,
+			)
+		}
+		if rw.ChatID == "" {
+			return errors.Errorf(
+				ctx,
+				"watcher %q (telegram): missing required field: chat_id",
+				rw.Name,
+			)
+		}
+	case "log":
+		// no extra fields required
+	default:
+		return errors.Errorf(
+			ctx,
+			"watcher %q: unknown type %q (must be openclaw-wake, telegram, or log)",
+			rw.Name,
+			rw.Type,
+		)
+	}
+	return nil
+}
+
+func parseDedupTTL(ctx context.Context, rw rawWatcherEntry) (time.Duration, error) {
+	if rw.DedupTTL == "" {
+		return 5 * time.Minute, nil
+	}
+	parsed, err := time.ParseDuration(rw.DedupTTL)
+	if err != nil {
+		return 0, errors.Wrapf(ctx, err, "watcher %q: parse dedup_ttl %q", rw.Name, rw.DedupTTL)
+	}
+	return parsed, nil
+}
+
+func parseWatchers(ctx context.Context, rawList []rawWatcherEntry) ([]WatcherConfig, error) {
+	watchers := make([]WatcherConfig, 0, len(rawList))
+	for i, rw := range rawList {
+		if rw.Name == "" {
+			return nil, errors.Errorf(ctx, "watcher[%d]: missing required field: name", i)
+		}
+		if rw.Type == "" {
+			return nil, errors.Errorf(ctx, "watcher %q: missing required field: type", rw.Name)
+		}
+		if err := validateWatcherType(ctx, rw); err != nil {
+			return nil, err
+		}
+		dedupTTL, err := parseDedupTTL(ctx, rw)
+		if err != nil {
+			return nil, err
+		}
+
+		watchers = append(watchers, WatcherConfig{
+			Name:     rw.Name,
+			Type:     rw.Type,
+			Assignee: rw.Assignee,
+			Statuses: rw.Statuses,
+			Phases:   rw.Phases,
+			DedupTTL: dedupTTL,
+			URL:      rw.URL,
+			Token:    rw.Token,
+			ChatID:   rw.ChatID,
+		})
+	}
+	return watchers, nil
+}
+
 func (l *loader) Load(ctx context.Context) (Config, error) {
 	filePath, err := resolveFilePath(l.filePath)
 	if err != nil {
@@ -150,25 +243,14 @@ func (l *loader) Load(ctx context.Context) (Config, error) {
 		return Config{}, errors.Wrapf(ctx, err, "parse config file %s", filePath)
 	}
 
-	if len(raw.Vaults) == 0 {
-		return Config{}, errors.Errorf(ctx, "missing required field: vaults")
-	}
-	if raw.Assignee == "" {
-		return Config{}, errors.Errorf(ctx, "missing required field: assignee")
-	}
-	if len(raw.Statuses) == 0 {
-		return Config{}, errors.Errorf(ctx, "missing required field: statuses")
-	}
-	if len(raw.Phases) == 0 {
-		return Config{}, errors.Errorf(ctx, "missing required field: phases")
-	}
-	if raw.Webhook == "" {
-		return Config{}, errors.Errorf(ctx, "missing required field: webhook")
+	if raw.Assignee != "" || raw.Webhook != "" || raw.Format != "" || raw.WebhookToken != "" {
+		return Config{}, errors.Errorf(ctx,
+			"config uses the old flat format (assignee/webhook/format fields at the top level). "+
+				"Please migrate to the new watchers list format. See CHANGELOG for migration instructions.")
 	}
 
-	format, err := parseFormat(ctx, raw)
-	if err != nil {
-		return Config{}, err
+	if len(raw.Vaults) == 0 {
+		return Config{}, errors.Errorf(ctx, "missing required field: vaults")
 	}
 
 	vaults, err := parseVaults(ctx, raw.Vaults)
@@ -176,23 +258,10 @@ func (l *loader) Load(ctx context.Context) (Config, error) {
 		return Config{}, err
 	}
 
-	dedupTTL := 5 * time.Minute // default
-	if raw.DedupTTL != "" {
-		parsed, err := time.ParseDuration(raw.DedupTTL)
-		if err != nil {
-			return Config{}, errors.Wrapf(ctx, err, "parse dedup_ttl %q", raw.DedupTTL)
-		}
-		dedupTTL = parsed
+	watchers, err := parseWatchers(ctx, raw.Watchers)
+	if err != nil {
+		return Config{}, err
 	}
 
-	return Config{
-		Vaults:       vaults,
-		Assignee:     raw.Assignee,
-		Statuses:     raw.Statuses,
-		Phases:       raw.Phases,
-		Webhook:      raw.Webhook,
-		Format:       format,
-		WebhookToken: raw.WebhookToken,
-		DedupTTL:     dedupTTL,
-	}, nil
+	return Config{Vaults: vaults, Watchers: watchers}, nil
 }

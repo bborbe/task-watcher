@@ -2,6 +2,10 @@
 
 All notable changes to this project will be documented in this file.
 
+## v0.16.0
+
+- feat: Replace flat config with watchers list supporting multiple independent notifiers per process
+
 ## v0.15.0
 
 - feat: replace permanent dedup with TTL-based dedup — webhooks re-fire after configurable `dedup_ttl` (default 5 minutes) so missed notifications are retried

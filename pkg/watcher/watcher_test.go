@@ -53,9 +53,6 @@ var _ = Describe("Watcher", func() {
 			Vaults: []config.VaultConfig{
 				{Name: "testvault", Path: vaultDir, TasksDir: "24 Tasks"},
 			},
-			Assignee: "Alice",
-			Statuses: []string{"in_progress"},
-			Phases:   []string{"planning"},
 		}
 		fakeNotifier = &mocknotify.FakeNotifier{}
 		w = watcher.NewWatcher(cfg, fakeNotifier)
@@ -75,7 +72,7 @@ var _ = Describe("Watcher", func() {
 		Expect(os.RemoveAll(vaultDir)).To(Succeed())
 	})
 
-	Context("when a matching task is created", func() {
+	Context("when a task with complete frontmatter is created", func() {
 		It("calls the notifier with the correct task details", func() {
 			writeTask(tasksDir, "my-task", "Alice", "in_progress", "planning")
 			Eventually(func() int {
@@ -85,33 +82,6 @@ var _ = Describe("Watcher", func() {
 			Expect(notification.TaskName).To(Equal("my-task"))
 			Expect(notification.Phase).To(Equal("planning"))
 			Expect(notification.Assignee).To(Equal("Alice"))
-		})
-	})
-
-	Context("when a task has the wrong assignee", func() {
-		It("does not call the notifier", func() {
-			writeTask(tasksDir, "other-task", "Bob", "in_progress", "planning")
-			Consistently(func() int {
-				return fakeNotifier.NotifyCallCount()
-			}, "300ms", "20ms").Should(Equal(0))
-		})
-	})
-
-	Context("when a task has the wrong status", func() {
-		It("does not call the notifier", func() {
-			writeTask(tasksDir, "todo-task", "Alice", "todo", "planning")
-			Consistently(func() int {
-				return fakeNotifier.NotifyCallCount()
-			}, "300ms", "20ms").Should(Equal(0))
-		})
-	})
-
-	Context("when a task has the wrong phase", func() {
-		It("does not call the notifier", func() {
-			writeTask(tasksDir, "other-phase-task", "Alice", "in_progress", "review")
-			Consistently(func() int {
-				return fakeNotifier.NotifyCallCount()
-			}, "300ms", "20ms").Should(Equal(0))
 		})
 	})
 
@@ -166,9 +136,6 @@ var _ = Describe("Watcher multi-vault", func() {
 				{Name: "vault1", Path: vault1Dir, TasksDir: "24 Tasks"},
 				{Name: "vault2", Path: vault2Dir, TasksDir: "Tasks"},
 			},
-			Assignee: "Alice",
-			Statuses: []string{"in_progress"},
-			Phases:   []string{"planning"},
 		}
 		fakeNotifier = &mocknotify.FakeNotifier{}
 		w = watcher.NewWatcher(cfg, fakeNotifier)

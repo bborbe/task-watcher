@@ -15,21 +15,6 @@ import (
 	"github.com/bborbe/task-watcher/pkg/config"
 )
 
-const validYAML = `
-vaults:
-  personal:
-    path: ~/notes/vault
-    tasks_dir: "24 Tasks"
-assignee: alice
-statuses:
-  - active
-  - in-review
-phases:
-  - planning
-  - execution
-webhook: https://hooks.example.com/notify
-`
-
 func writeTempConfig(content string) string {
 	f, err := os.CreateTemp("", "config-*.yaml")
 	Expect(err).NotTo(HaveOccurred())
@@ -46,293 +31,460 @@ var _ = Describe("Loader", func() {
 		ctx = context.Background()
 	})
 
-	It("loads a valid config file", func() {
-		path := writeTempConfig(validYAML)
-		DeferCleanup(os.Remove, path)
-
-		cfg, err := config.NewLoader(path).Load(ctx)
-		Expect(err).NotTo(HaveOccurred())
-		Expect(cfg.Assignee).To(Equal("alice"))
-		Expect(cfg.Statuses).To(ConsistOf("active", "in-review"))
-		Expect(cfg.Phases).To(ConsistOf("planning", "execution"))
-		Expect(cfg.Webhook).To(Equal("https://hooks.example.com/notify"))
-	})
-
-	It("parses single vault with name, path and tasks_dir", func() {
-		path := writeTempConfig(validYAML)
-		DeferCleanup(os.Remove, path)
-
-		cfg, err := config.NewLoader(path).Load(ctx)
-		Expect(err).NotTo(HaveOccurred())
-		Expect(cfg.Vaults).To(HaveLen(1))
-		Expect(cfg.Vaults[0].Name).To(Equal("personal"))
-		Expect(cfg.Vaults[0].TasksDir).To(Equal("24 Tasks"))
-	})
-
-	It("parses multiple vaults", func() {
-		yaml := `
+	Context("vault validation", func() {
+		It("parses a valid multi-vault config with watchers list", func() {
+			path := writeTempConfig(`
 vaults:
   personal:
     path: /tmp/personal
     tasks_dir: "24 Tasks"
-  octopus:
-    path: /tmp/octopus
-    tasks_dir: "Tasks"
-assignee: alice
-statuses:
-  - active
-phases:
-  - planning
-webhook: https://hooks.example.com/notify
-`
-		path := writeTempConfig(yaml)
-		DeferCleanup(os.Remove, path)
-
-		cfg, err := config.NewLoader(path).Load(ctx)
-		Expect(err).NotTo(HaveOccurred())
-		Expect(cfg.Vaults).To(HaveLen(2))
-
-		names := make([]string, len(cfg.Vaults))
-		for i, v := range cfg.Vaults {
-			names[i] = v.Name
-		}
-		Expect(names).To(ConsistOf("personal", "octopus"))
-	})
-
-	It("expands ~/ in each vault path", func() {
-		path := writeTempConfig(validYAML)
-		DeferCleanup(os.Remove, path)
-
-		cfg, err := config.NewLoader(path).Load(ctx)
-		Expect(err).NotTo(HaveOccurred())
-
-		home, err := os.UserHomeDir()
-		Expect(err).NotTo(HaveOccurred())
-		for _, v := range cfg.Vaults {
-			Expect(v.Path).To(HavePrefix(home))
-			Expect(v.Path).NotTo(ContainSubstring("~"))
-		}
-	})
-
-	It("returns error when file does not exist", func() {
-		_, err := config.NewLoader("/nonexistent/path/config.yaml").Load(ctx)
-		Expect(err).To(HaveOccurred())
-		Expect(err.Error()).To(ContainSubstring("/nonexistent/path/config.yaml"))
-	})
-
-	It("resolves default path when filePath is empty", func() {
-		home, err := os.UserHomeDir()
-		Expect(err).NotTo(HaveOccurred())
-		defaultPath := home + "/.task-watcher/config.yaml"
-
-		// Verify the loader uses the default path (not that it errors).
-		// If the file exists on this machine, the loader will succeed;
-		// if not, the error message must reference the default path.
-		_, err = config.NewLoader("").Load(ctx)
-		if err != nil {
-			Expect(err.Error()).To(ContainSubstring(defaultPath))
-		}
-		// Either way, the default resolution worked.
-	})
-
-	It("returns error when vaults map is empty", func() {
-		path := writeTempConfig(`
-assignee: alice
-statuses:
-  - active
-phases:
-  - planning
-webhook: https://hooks.example.com/notify
+  work:
+    path: /tmp/work
+    tasks_dir: Tasks
+watchers: []
 `)
-		DeferCleanup(os.Remove, path)
+			DeferCleanup(os.Remove, path)
 
-		_, err := config.NewLoader(path).Load(ctx)
-		Expect(err).To(HaveOccurred())
-		Expect(err.Error()).To(ContainSubstring("vaults"))
-	})
+			cfg, err := config.NewLoader(path).Load(ctx)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(cfg.Vaults).To(HaveLen(2))
+			Expect(cfg.Watchers).To(BeEmpty())
+		})
 
-	It("returns error when a vault is missing path", func() {
-		path := writeTempConfig(`
+		It("returns error when vaults map is empty", func() {
+			path := writeTempConfig(`
+vaults: {}
+watchers: []
+`)
+			DeferCleanup(os.Remove, path)
+
+			_, err := config.NewLoader(path).Load(ctx)
+			Expect(err).To(HaveOccurred())
+			Expect(err.Error()).To(ContainSubstring("vaults"))
+		})
+
+		It("returns error when vaults key is missing", func() {
+			path := writeTempConfig(`
+watchers: []
+`)
+			DeferCleanup(os.Remove, path)
+
+			_, err := config.NewLoader(path).Load(ctx)
+			Expect(err).To(HaveOccurred())
+			Expect(err.Error()).To(ContainSubstring("vaults"))
+		})
+
+		It("returns error when a vault is missing path", func() {
+			path := writeTempConfig(`
 vaults:
   personal:
     tasks_dir: "24 Tasks"
-assignee: alice
-statuses:
-  - active
-phases:
-  - planning
-webhook: https://hooks.example.com/notify
+watchers: []
 `)
-		DeferCleanup(os.Remove, path)
+			DeferCleanup(os.Remove, path)
 
-		_, err := config.NewLoader(path).Load(ctx)
-		Expect(err).To(HaveOccurred())
-		Expect(err.Error()).To(ContainSubstring("path"))
-	})
+			_, err := config.NewLoader(path).Load(ctx)
+			Expect(err).To(HaveOccurred())
+			Expect(err.Error()).To(ContainSubstring("path"))
+		})
 
-	It("returns error when a vault is missing tasks_dir", func() {
-		path := writeTempConfig(`
+		It("returns error when a vault is missing tasks_dir", func() {
+			path := writeTempConfig(`
 vaults:
   personal:
     path: /tmp/vault
-assignee: alice
-statuses:
-  - active
-phases:
-  - planning
-webhook: https://hooks.example.com/notify
+watchers: []
 `)
-		DeferCleanup(os.Remove, path)
+			DeferCleanup(os.Remove, path)
 
-		_, err := config.NewLoader(path).Load(ctx)
-		Expect(err).To(HaveOccurred())
-		Expect(err.Error()).To(ContainSubstring("tasks_dir"))
-	})
+			_, err := config.NewLoader(path).Load(ctx)
+			Expect(err).To(HaveOccurred())
+			Expect(err.Error()).To(ContainSubstring("tasks_dir"))
+		})
 
-	It("returns error when assignee is missing", func() {
-		path := writeTempConfig(`
+		It("expands ~/ in vault path", func() {
+			path := writeTempConfig(`
 vaults:
   personal:
-    path: ~/notes
+    path: ~/notes/vault
     tasks_dir: "24 Tasks"
-statuses:
-  - active
-phases:
-  - planning
-webhook: https://hooks.example.com/notify
+watchers: []
 `)
-		DeferCleanup(os.Remove, path)
+			DeferCleanup(os.Remove, path)
 
-		_, err := config.NewLoader(path).Load(ctx)
-		Expect(err).To(HaveOccurred())
-		Expect(err.Error()).To(ContainSubstring("assignee"))
+			cfg, err := config.NewLoader(path).Load(ctx)
+			Expect(err).NotTo(HaveOccurred())
+
+			home, err := os.UserHomeDir()
+			Expect(err).NotTo(HaveOccurred())
+			for _, v := range cfg.Vaults {
+				Expect(v.Path).To(HavePrefix(home))
+				Expect(v.Path).NotTo(ContainSubstring("~"))
+			}
+		})
 	})
 
-	It("returns error when statuses is empty", func() {
-		path := writeTempConfig(`
+	Context("backward-compat detection", func() {
+		It("returns error when top-level assignee field is present", func() {
+			path := writeTempConfig(`
 vaults:
   personal:
-    path: ~/notes
-    tasks_dir: "24 Tasks"
+    path: /tmp/vault
+    tasks_dir: Tasks
 assignee: alice
-phases:
-  - planning
-webhook: https://hooks.example.com/notify
 `)
-		DeferCleanup(os.Remove, path)
+			DeferCleanup(os.Remove, path)
 
-		_, err := config.NewLoader(path).Load(ctx)
-		Expect(err).To(HaveOccurred())
-		Expect(err.Error()).To(ContainSubstring("statuses"))
-	})
+			_, err := config.NewLoader(path).Load(ctx)
+			Expect(err).To(HaveOccurred())
+			Expect(err.Error()).To(ContainSubstring("old flat format"))
+		})
 
-	It("returns error when phases is empty", func() {
-		path := writeTempConfig(`
+		It("returns error when top-level webhook field is present", func() {
+			path := writeTempConfig(`
 vaults:
   personal:
-    path: ~/notes
-    tasks_dir: "24 Tasks"
-assignee: alice
-statuses:
-  - active
+    path: /tmp/vault
+    tasks_dir: Tasks
 webhook: https://hooks.example.com/notify
 `)
-		DeferCleanup(os.Remove, path)
+			DeferCleanup(os.Remove, path)
 
-		_, err := config.NewLoader(path).Load(ctx)
-		Expect(err).To(HaveOccurred())
-		Expect(err.Error()).To(ContainSubstring("phases"))
-	})
+			_, err := config.NewLoader(path).Load(ctx)
+			Expect(err).To(HaveOccurred())
+			Expect(err.Error()).To(ContainSubstring("old flat format"))
+		})
 
-	It("returns error when webhook is missing", func() {
-		path := writeTempConfig(`
+		It("returns error when top-level format field is present", func() {
+			path := writeTempConfig(`
 vaults:
   personal:
-    path: ~/notes
-    tasks_dir: "24 Tasks"
-assignee: alice
-statuses:
-  - active
-phases:
-  - planning
+    path: /tmp/vault
+    tasks_dir: Tasks
+format: openclaw
 `)
-		DeferCleanup(os.Remove, path)
+			DeferCleanup(os.Remove, path)
 
-		_, err := config.NewLoader(path).Load(ctx)
-		Expect(err).To(HaveOccurred())
-		Expect(err.Error()).To(ContainSubstring("webhook"))
+			_, err := config.NewLoader(path).Load(ctx)
+			Expect(err).To(HaveOccurred())
+			Expect(err.Error()).To(ContainSubstring("old flat format"))
+		})
 	})
 
-	It("defaults format to generic when not specified", func() {
-		path := writeTempConfig(validYAML)
-		DeferCleanup(os.Remove, path)
+	Context("watchers parsing", func() {
+		It("accepts empty watchers list", func() {
+			path := writeTempConfig(`
+vaults:
+  personal:
+    path: /tmp/vault
+    tasks_dir: Tasks
+watchers: []
+`)
+			DeferCleanup(os.Remove, path)
 
-		cfg, err := config.NewLoader(path).Load(ctx)
-		Expect(err).NotTo(HaveOccurred())
-		Expect(cfg.Format).To(Equal("generic"))
+			cfg, err := config.NewLoader(path).Load(ctx)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(cfg.Watchers).To(BeEmpty())
+		})
+
+		It("accepts missing watchers key (treated as empty)", func() {
+			path := writeTempConfig(`
+vaults:
+  personal:
+    path: /tmp/vault
+    tasks_dir: Tasks
+`)
+			DeferCleanup(os.Remove, path)
+
+			cfg, err := config.NewLoader(path).Load(ctx)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(cfg.Watchers).To(BeEmpty())
+		})
+
+		It("returns error when watcher is missing name", func() {
+			path := writeTempConfig(`
+vaults:
+  personal:
+    path: /tmp/vault
+    tasks_dir: Tasks
+watchers:
+  - type: log
+`)
+			DeferCleanup(os.Remove, path)
+
+			_, err := config.NewLoader(path).Load(ctx)
+			Expect(err).To(HaveOccurred())
+			Expect(err.Error()).To(ContainSubstring("missing required field: name"))
+		})
+
+		It("returns error when watcher is missing type", func() {
+			path := writeTempConfig(`
+vaults:
+  personal:
+    path: /tmp/vault
+    tasks_dir: Tasks
+watchers:
+  - name: my-watcher
+`)
+			DeferCleanup(os.Remove, path)
+
+			_, err := config.NewLoader(path).Load(ctx)
+			Expect(err).To(HaveOccurred())
+			Expect(err.Error()).To(ContainSubstring("missing required field: type"))
+		})
+
+		It("returns error when watcher has unknown type", func() {
+			path := writeTempConfig(`
+vaults:
+  personal:
+    path: /tmp/vault
+    tasks_dir: Tasks
+watchers:
+  - name: my-watcher
+    type: slack
+`)
+			DeferCleanup(os.Remove, path)
+
+			_, err := config.NewLoader(path).Load(ctx)
+			Expect(err).To(HaveOccurred())
+			Expect(err.Error()).To(ContainSubstring("unknown type"))
+		})
+
+		It("returns error when openclaw-wake watcher is missing url", func() {
+			path := writeTempConfig(`
+vaults:
+  personal:
+    path: /tmp/vault
+    tasks_dir: Tasks
+watchers:
+  - name: wake
+    type: openclaw-wake
+    token: secret
+`)
+			DeferCleanup(os.Remove, path)
+
+			_, err := config.NewLoader(path).Load(ctx)
+			Expect(err).To(HaveOccurred())
+			Expect(err.Error()).To(ContainSubstring("url"))
+		})
+
+		It("returns error when openclaw-wake watcher is missing token", func() {
+			path := writeTempConfig(`
+vaults:
+  personal:
+    path: /tmp/vault
+    tasks_dir: Tasks
+watchers:
+  - name: wake
+    type: openclaw-wake
+    url: http://127.0.0.1:18789/hooks/wake
+`)
+			DeferCleanup(os.Remove, path)
+
+			_, err := config.NewLoader(path).Load(ctx)
+			Expect(err).To(HaveOccurred())
+			Expect(err.Error()).To(ContainSubstring("token"))
+		})
+
+		It("returns error when telegram watcher is missing token", func() {
+			path := writeTempConfig(`
+vaults:
+  personal:
+    path: /tmp/vault
+    tasks_dir: Tasks
+watchers:
+  - name: tg
+    type: telegram
+    chat_id: "456"
+`)
+			DeferCleanup(os.Remove, path)
+
+			_, err := config.NewLoader(path).Load(ctx)
+			Expect(err).To(HaveOccurred())
+			Expect(err.Error()).To(ContainSubstring("token"))
+		})
+
+		It("returns error when telegram watcher is missing chat_id", func() {
+			path := writeTempConfig(`
+vaults:
+  personal:
+    path: /tmp/vault
+    tasks_dir: Tasks
+watchers:
+  - name: tg
+    type: telegram
+    token: "bot123:ABC"
+`)
+			DeferCleanup(os.Remove, path)
+
+			_, err := config.NewLoader(path).Load(ctx)
+			Expect(err).To(HaveOccurred())
+			Expect(err.Error()).To(ContainSubstring("chat_id"))
+		})
+
+		It("accepts log type with no extra fields", func() {
+			path := writeTempConfig(`
+vaults:
+  personal:
+    path: /tmp/vault
+    tasks_dir: Tasks
+watchers:
+  - name: debug
+    type: log
+`)
+			DeferCleanup(os.Remove, path)
+
+			cfg, err := config.NewLoader(path).Load(ctx)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(cfg.Watchers).To(HaveLen(1))
+			Expect(cfg.Watchers[0].Type).To(Equal("log"))
+		})
+
+		It("parses dedup_ttl as 30 minutes", func() {
+			path := writeTempConfig(`
+vaults:
+  personal:
+    path: /tmp/vault
+    tasks_dir: Tasks
+watchers:
+  - name: debug
+    type: log
+    dedup_ttl: "30m"
+`)
+			DeferCleanup(os.Remove, path)
+
+			cfg, err := config.NewLoader(path).Load(ctx)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(cfg.Watchers[0].DedupTTL).To(Equal(30 * time.Minute))
+		})
+
+		It("defaults dedup_ttl to 5 minutes when not specified", func() {
+			path := writeTempConfig(`
+vaults:
+  personal:
+    path: /tmp/vault
+    tasks_dir: Tasks
+watchers:
+  - name: debug
+    type: log
+`)
+			DeferCleanup(os.Remove, path)
+
+			cfg, err := config.NewLoader(path).Load(ctx)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(cfg.Watchers[0].DedupTTL).To(Equal(5 * time.Minute))
+		})
+
+		It("returns error when dedup_ttl is invalid", func() {
+			path := writeTempConfig(`
+vaults:
+  personal:
+    path: /tmp/vault
+    tasks_dir: Tasks
+watchers:
+  - name: debug
+    type: log
+    dedup_ttl: "banana"
+`)
+			DeferCleanup(os.Remove, path)
+
+			_, err := config.NewLoader(path).Load(ctx)
+			Expect(err).To(HaveOccurred())
+			Expect(err.Error()).To(ContainSubstring("dedup_ttl"))
+		})
 	})
 
-	It("accepts format generic", func() {
-		path := writeTempConfig(validYAML + "format: generic\n")
-		DeferCleanup(os.Remove, path)
+	Context("full valid config", func() {
+		It("parses all fields correctly", func() {
+			path := writeTempConfig(`
+vaults:
+  openclaw:
+    path: /tmp/vault
+    tasks_dir: tasks
+  personal:
+    path: /tmp/obsidian
+    tasks_dir: "24 Tasks"
 
-		cfg, err := config.NewLoader(path).Load(ctx)
-		Expect(err).NotTo(HaveOccurred())
-		Expect(cfg.Format).To(Equal("generic"))
+watchers:
+  - name: wake-tradingclaw
+    type: openclaw-wake
+    assignee: TradingClaw
+    statuses: [in_progress]
+    phases: [planning, in_progress, ai_review]
+    dedup_ttl: "5m"
+    url: http://127.0.0.1:18789/hooks/wake
+    token: "secret"
+
+  - name: notify-review
+    type: telegram
+    assignee: TradingClaw
+    statuses: [in_progress]
+    phases: [human_review]
+    dedup_ttl: "30m"
+    token: "bot123:ABC"
+    chat_id: "456"
+
+  - name: debug
+    type: log
+    assignee: TradingClaw
+    statuses: [in_progress]
+    phases: [planning]
+`)
+			DeferCleanup(os.Remove, path)
+
+			cfg, err := config.NewLoader(path).Load(ctx)
+			Expect(err).NotTo(HaveOccurred())
+
+			// 2 vaults
+			Expect(cfg.Vaults).To(HaveLen(2))
+			vaultNames := make([]string, len(cfg.Vaults))
+			for i, v := range cfg.Vaults {
+				vaultNames[i] = v.Name
+			}
+			Expect(vaultNames).To(ConsistOf("openclaw", "personal"))
+
+			// 3 watchers
+			Expect(cfg.Watchers).To(HaveLen(3))
+
+			wake := cfg.Watchers[0]
+			Expect(wake.Name).To(Equal("wake-tradingclaw"))
+			Expect(wake.Type).To(Equal("openclaw-wake"))
+			Expect(wake.Assignee).To(Equal("TradingClaw"))
+			Expect(wake.Statuses).To(ConsistOf("in_progress"))
+			Expect(wake.Phases).To(ConsistOf("planning", "in_progress", "ai_review"))
+			Expect(wake.DedupTTL).To(Equal(5 * time.Minute))
+			Expect(wake.URL).To(Equal("http://127.0.0.1:18789/hooks/wake"))
+			Expect(wake.Token).To(Equal("secret"))
+
+			tg := cfg.Watchers[1]
+			Expect(tg.Name).To(Equal("notify-review"))
+			Expect(tg.Type).To(Equal("telegram"))
+			Expect(tg.Token).To(Equal("bot123:ABC"))
+			Expect(tg.ChatID).To(Equal("456"))
+			Expect(tg.DedupTTL).To(Equal(30 * time.Minute))
+
+			log := cfg.Watchers[2]
+			Expect(log.Name).To(Equal("debug"))
+			Expect(log.Type).To(Equal("log"))
+		})
 	})
 
-	It("accepts format openclaw with webhook_token", func() {
-		path := writeTempConfig(validYAML + "format: openclaw\nwebhook_token: secret\n")
-		DeferCleanup(os.Remove, path)
+	Context("file resolution", func() {
+		It("returns error when file does not exist", func() {
+			_, err := config.NewLoader("/nonexistent/path/config.yaml").Load(ctx)
+			Expect(err).To(HaveOccurred())
+			Expect(err.Error()).To(ContainSubstring("/nonexistent/path/config.yaml"))
+		})
 
-		cfg, err := config.NewLoader(path).Load(ctx)
-		Expect(err).NotTo(HaveOccurred())
-		Expect(cfg.Format).To(Equal("openclaw"))
-		Expect(cfg.WebhookToken).To(Equal("secret"))
-	})
+		It("resolves default path when filePath is empty", func() {
+			home, err := os.UserHomeDir()
+			Expect(err).NotTo(HaveOccurred())
+			defaultPath := home + "/.task-watcher/config.yaml"
 
-	It("returns error when format is openclaw but webhook_token is missing", func() {
-		path := writeTempConfig(validYAML + "format: openclaw\n")
-		DeferCleanup(os.Remove, path)
-
-		_, err := config.NewLoader(path).Load(ctx)
-		Expect(err).To(HaveOccurred())
-		Expect(err.Error()).To(ContainSubstring("webhook_token"))
-	})
-
-	It("returns error when format is unknown", func() {
-		path := writeTempConfig(validYAML + "format: invalid\n")
-		DeferCleanup(os.Remove, path)
-
-		_, err := config.NewLoader(path).Load(ctx)
-		Expect(err).To(HaveOccurred())
-		Expect(err.Error()).To(ContainSubstring("invalid"))
-	})
-
-	It("defaults dedup_ttl to 5 minutes when not specified", func() {
-		path := writeTempConfig(validYAML)
-		DeferCleanup(os.Remove, path)
-
-		cfg, err := config.NewLoader(path).Load(ctx)
-		Expect(err).NotTo(HaveOccurred())
-		Expect(cfg.DedupTTL).To(Equal(5 * time.Minute))
-	})
-
-	It("parses valid dedup_ttl duration", func() {
-		path := writeTempConfig(validYAML + "dedup_ttl: 10m\n")
-		DeferCleanup(os.Remove, path)
-
-		cfg, err := config.NewLoader(path).Load(ctx)
-		Expect(err).NotTo(HaveOccurred())
-		Expect(cfg.DedupTTL).To(Equal(10 * time.Minute))
-	})
-
-	It("returns error when dedup_ttl is not a valid duration", func() {
-		path := writeTempConfig(validYAML + "dedup_ttl: banana\n")
-		DeferCleanup(os.Remove, path)
-
-		_, err := config.NewLoader(path).Load(ctx)
-		Expect(err).To(HaveOccurred())
-		Expect(err.Error()).To(ContainSubstring("dedup_ttl"))
+			_, err = config.NewLoader("").Load(ctx)
+			if err != nil {
+				Expect(err.Error()).To(ContainSubstring(defaultPath))
+			}
+		})
 	})
 })
