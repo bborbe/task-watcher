@@ -91,20 +91,42 @@ var _ = Describe("LogNotifier", func() {
 
 		// After TTL — should log again
 		Expect(n.Notify(ctx, notification)).To(Succeed())
-		Expect(strings.Count(buf.String(), "log notifier: task event")).To(Equal(countAfterFirst + 1))
+		Expect(
+			strings.Count(buf.String(), "log notifier: task event"),
+		).To(Equal(countAfterFirst + 1))
 	})
 
 	It("does not deduplicate different task names", func() {
 		n := notify.NewLogNotifier(time.Minute)
-		Expect(n.Notify(ctx, notify.Notification{TaskName: "task-a", Phase: "planning", Assignee: "alice"})).To(Succeed())
-		Expect(n.Notify(ctx, notify.Notification{TaskName: "task-b", Phase: "planning", Assignee: "alice"})).To(Succeed())
+		Expect(
+			n.Notify(
+				ctx,
+				notify.Notification{TaskName: "task-a", Phase: "planning", Assignee: "alice"},
+			),
+		).To(Succeed())
+		Expect(
+			n.Notify(
+				ctx,
+				notify.Notification{TaskName: "task-b", Phase: "planning", Assignee: "alice"},
+			),
+		).To(Succeed())
 		Expect(strings.Count(buf.String(), "log notifier: task event")).To(Equal(2))
 	})
 
 	It("does not deduplicate different phases for same task", func() {
 		n := notify.NewLogNotifier(time.Minute)
-		Expect(n.Notify(ctx, notify.Notification{TaskName: "task-a", Phase: "planning", Assignee: "alice"})).To(Succeed())
-		Expect(n.Notify(ctx, notify.Notification{TaskName: "task-a", Phase: "execution", Assignee: "alice"})).To(Succeed())
+		Expect(
+			n.Notify(
+				ctx,
+				notify.Notification{TaskName: "task-a", Phase: "planning", Assignee: "alice"},
+			),
+		).To(Succeed())
+		Expect(
+			n.Notify(
+				ctx,
+				notify.Notification{TaskName: "task-a", Phase: "execution", Assignee: "alice"},
+			),
+		).To(Succeed())
 		Expect(strings.Count(buf.String(), "log notifier: task event")).To(Equal(2))
 	})
 })

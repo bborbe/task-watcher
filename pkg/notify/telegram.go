@@ -32,7 +32,13 @@ func NewTelegramNotifier(
 	httpClient *http.Client,
 	dedupTTL time.Duration,
 ) Notifier {
-	return NewTelegramNotifierWithBaseURL(token, chatID, httpClient, dedupTTL, "https://api.telegram.org")
+	return NewTelegramNotifierWithBaseURL(
+		token,
+		chatID,
+		httpClient,
+		dedupTTL,
+		"https://api.telegram.org",
+	)
 }
 
 // NewTelegramNotifierWithBaseURL returns a Notifier that sends messages via the Telegram Bot API

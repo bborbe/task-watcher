@@ -22,21 +22,15 @@ func CreateNotifier(_ config.Config) notify.Notifier {
 	return nil
 }
 
-// CreateDryRunNotifier constructs a notify.Notifier that logs instead of sending HTTP requests.
+// CreateLogNotifier constructs a notify.Notifier that logs instead of sending HTTP requests.
 // TODO(spec-003): per-watcher notifier selection will be added in the fanout prompt.
-func CreateDryRunNotifier(_ config.Config) notify.Notifier {
-	return nil
+func CreateLogNotifier(_ config.Config) notify.Notifier {
+	return notify.NewLogNotifier(0)
 }
 
 // CreateOpenClawNotifier constructs a notify.Notifier that sends OpenClaw-formatted payloads.
 // TODO(spec-003): per-watcher notifier selection will be added in the fanout prompt.
 func CreateOpenClawNotifier(_ config.Config) notify.Notifier {
-	return nil
-}
-
-// CreateDryRunOpenClawNotifier constructs a notify.Notifier that logs OpenClaw-formatted payloads instead of sending HTTP requests.
-// TODO(spec-003): per-watcher notifier selection will be added in the fanout prompt.
-func CreateDryRunOpenClawNotifier(_ config.Config) notify.Notifier {
 	return nil
 }
 

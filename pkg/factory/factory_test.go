@@ -29,11 +29,11 @@ var _ = Describe("Factory", func() {
 		})
 	})
 
-	Describe("CreateDryRunNotifier", func() {
-		It("returns a notify.Notifier (stub)", func() {
+	Describe("CreateLogNotifier", func() {
+		It("returns a non-nil notify.Notifier", func() {
 			cfg := config.Config{}
-			// TODO(spec-003): stub returns nil until fanout prompt wires per-watcher notifiers
-			_ = factory.CreateDryRunNotifier(cfg)
+			result := factory.CreateLogNotifier(cfg)
+			Expect(result).NotTo(BeNil())
 		})
 	})
 

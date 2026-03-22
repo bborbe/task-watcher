@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## v0.17.0
+
+- feat: add Telegram Bot API notifier (`pkg/notify/telegram.go`) with TTL-based dedup and token-safe logging
+- feat: add log notifier (`pkg/notify/log.go`) replacing dry-run mode for debug/dry-run observation
+- refactor: delete `pkg/notify/dry_run.go` and `pkg/notify/dry_run_test.go`, replace factory references with `NewLogNotifier`
+
 ## v0.16.0
 
 - feat: Replace flat config with watchers list supporting multiple independent notifiers per process

@@ -54,7 +54,13 @@ var _ = Describe("TelegramNotifier", func() {
 	})
 
 	It("sends POST to correct Telegram URL path /bot<token>/sendMessage", func() {
-		n := notify.NewTelegramNotifierWithBaseURL("mytoken", "123456", server.Client(), time.Minute, server.URL)
+		n := notify.NewTelegramNotifierWithBaseURL(
+			"mytoken",
+			"123456",
+			server.Client(),
+			time.Minute,
+			server.URL,
+		)
 		err := n.Notify(ctx, notify.Notification{
 			TaskName: "my-task",
 			Phase:    "planning",
@@ -66,7 +72,13 @@ var _ = Describe("TelegramNotifier", func() {
 	})
 
 	It("sends correct chat_id and text in body", func() {
-		n := notify.NewTelegramNotifierWithBaseURL("tok", "chat99", server.Client(), time.Minute, server.URL)
+		n := notify.NewTelegramNotifierWithBaseURL(
+			"tok",
+			"chat99",
+			server.Client(),
+			time.Minute,
+			server.URL,
+		)
 		err := n.Notify(ctx, notify.Notification{
 			TaskName: "my-task",
 			Phase:    "planning",
@@ -78,11 +90,19 @@ var _ = Describe("TelegramNotifier", func() {
 		var payload map[string]interface{}
 		Expect(json.Unmarshal(lastBody, &payload)).To(Succeed())
 		Expect(payload["chat_id"]).To(Equal("chat99"))
-		Expect(payload["text"]).To(Equal("Task watcher: alice task changed (task: my-task, phase: planning)"))
+		Expect(
+			payload["text"],
+		).To(Equal("Task watcher: alice task changed (task: my-task, phase: planning)"))
 	})
 
 	It("does not set Authorization header (token is in URL)", func() {
-		n := notify.NewTelegramNotifierWithBaseURL("tok", "chat99", server.Client(), time.Minute, server.URL)
+		n := notify.NewTelegramNotifierWithBaseURL(
+			"tok",
+			"chat99",
+			server.Client(),
+			time.Minute,
+			server.URL,
+		)
 		Expect(n.Notify(ctx, notify.Notification{
 			TaskName: "task-a",
 			Phase:    "planning",
@@ -92,7 +112,13 @@ var _ = Describe("TelegramNotifier", func() {
 	})
 
 	It("returns nil on success (2xx response)", func() {
-		n := notify.NewTelegramNotifierWithBaseURL("tok", "chat99", server.Client(), time.Minute, server.URL)
+		n := notify.NewTelegramNotifierWithBaseURL(
+			"tok",
+			"chat99",
+			server.Client(),
+			time.Minute,
+			server.URL,
+		)
 		err := n.Notify(ctx, notify.Notification{
 			TaskName: "task-a",
 			Phase:    "planning",
@@ -103,7 +129,13 @@ var _ = Describe("TelegramNotifier", func() {
 
 	It("returns error on non-2xx response", func() {
 		statusCode = http.StatusBadRequest
-		n := notify.NewTelegramNotifierWithBaseURL("tok", "chat99", server.Client(), time.Minute, server.URL)
+		n := notify.NewTelegramNotifierWithBaseURL(
+			"tok",
+			"chat99",
+			server.Client(),
+			time.Minute,
+			server.URL,
+		)
 		err := n.Notify(ctx, notify.Notification{
 			TaskName: "task-a",
 			Phase:    "execution",
@@ -114,7 +146,13 @@ var _ = Describe("TelegramNotifier", func() {
 	})
 
 	It("deduplicates: same task+phase only sends one request within TTL", func() {
-		n := notify.NewTelegramNotifierWithBaseURL("tok", "chat99", server.Client(), time.Minute, server.URL)
+		n := notify.NewTelegramNotifierWithBaseURL(
+			"tok",
+			"chat99",
+			server.Client(),
+			time.Minute,
+			server.URL,
+		)
 		notification := notify.Notification{
 			TaskName: "dup-task",
 			Phase:    "planning",
@@ -126,7 +164,13 @@ var _ = Describe("TelegramNotifier", func() {
 	})
 
 	It("re-sends after TTL expires", func() {
-		n := notify.NewTelegramNotifierWithBaseURL("tok", "chat99", server.Client(), 50*time.Millisecond, server.URL)
+		n := notify.NewTelegramNotifierWithBaseURL(
+			"tok",
+			"chat99",
+			server.Client(),
+			50*time.Millisecond,
+			server.URL,
+		)
 		notification := notify.Notification{
 			TaskName: "retry-task",
 			Phase:    "planning",
@@ -148,16 +192,48 @@ var _ = Describe("TelegramNotifier", func() {
 	})
 
 	It("does not deduplicate different task names", func() {
-		n := notify.NewTelegramNotifierWithBaseURL("tok", "chat99", server.Client(), time.Minute, server.URL)
-		Expect(n.Notify(ctx, notify.Notification{TaskName: "task-a", Phase: "planning", Assignee: "alice"})).To(Succeed())
-		Expect(n.Notify(ctx, notify.Notification{TaskName: "task-b", Phase: "planning", Assignee: "alice"})).To(Succeed())
+		n := notify.NewTelegramNotifierWithBaseURL(
+			"tok",
+			"chat99",
+			server.Client(),
+			time.Minute,
+			server.URL,
+		)
+		Expect(
+			n.Notify(
+				ctx,
+				notify.Notification{TaskName: "task-a", Phase: "planning", Assignee: "alice"},
+			),
+		).To(Succeed())
+		Expect(
+			n.Notify(
+				ctx,
+				notify.Notification{TaskName: "task-b", Phase: "planning", Assignee: "alice"},
+			),
+		).To(Succeed())
 		Expect(requestCount.Load()).To(Equal(int32(2)))
 	})
 
 	It("does not deduplicate different phases for same task", func() {
-		n := notify.NewTelegramNotifierWithBaseURL("tok", "chat99", server.Client(), time.Minute, server.URL)
-		Expect(n.Notify(ctx, notify.Notification{TaskName: "task-a", Phase: "planning", Assignee: "alice"})).To(Succeed())
-		Expect(n.Notify(ctx, notify.Notification{TaskName: "task-a", Phase: "execution", Assignee: "alice"})).To(Succeed())
+		n := notify.NewTelegramNotifierWithBaseURL(
+			"tok",
+			"chat99",
+			server.Client(),
+			time.Minute,
+			server.URL,
+		)
+		Expect(
+			n.Notify(
+				ctx,
+				notify.Notification{TaskName: "task-a", Phase: "planning", Assignee: "alice"},
+			),
+		).To(Succeed())
+		Expect(
+			n.Notify(
+				ctx,
+				notify.Notification{TaskName: "task-a", Phase: "execution", Assignee: "alice"},
+			),
+		).To(Succeed())
 		Expect(requestCount.Load()).To(Equal(int32(2)))
 	})
 })
