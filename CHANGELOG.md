@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## v0.18.1
+
+- Update Go dependencies across the board
+- Fix flaky config test to not assert error on missing local file
+- Add --allow-parallel-runners to golangci-lint
+
 ## v0.18.0
 
 - feat: Fan out vault events to all configured watchers with per-watcher filter and dedup
