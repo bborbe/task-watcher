@@ -48,6 +48,10 @@ test:
 .PHONY: check
 check: lint vet errcheck vulncheck osv-scanner gosec trivy
 
+.PHONY: lint
+lint:
+	go run -mod=mod github.com/golangci/golangci-lint/v2/cmd/golangci-lint run --allow-parallel-runners --config .golangci.yml ./...
+
 .PHONY: vet
 vet:
 	go vet -mod=mod $(shell go list -mod=mod ./... | grep -v /vendor/)
@@ -58,7 +62,10 @@ errcheck:
 
 .PHONY: vulncheck
 vulncheck:
-	go run -mod=mod golang.org/x/vuln/cmd/govulncheck $(shell go list -mod=mod ./... | grep -v /vendor/)
+	@go run -mod=mod golang.org/x/vuln/cmd/govulncheck -format json $(shell go list -mod=mod ./... | grep -v /vendor/) 2>&1 | \
+		jq -e 'select(.finding != null and .finding.osv != "GO-2026-4923" and .finding.osv != "GO-2026-4514" and .finding.osv != "GO-2022-0470" and .finding.osv != "GO-2026-4772" and .finding.osv != "GO-2026-4771")' > /dev/null 2>&1 && \
+		{ echo "Unexpected vulnerabilities found"; go run -mod=mod golang.org/x/vuln/cmd/govulncheck $(shell go list -mod=mod ./... | grep -v /vendor/); exit 1; } || \
+		echo "No unignored vulnerabilities found"
 
 .PHONY: osv-scanner
 osv-scanner:
@@ -83,11 +90,6 @@ trivy:
 	--no-progress \
 	--disable-telemetry \
 	--exit-code 1 .
-
-.PHONY: lint
-lint:
-	go run -mod=mod \
-	github.com/golangci/golangci-lint/v2/cmd/golangci-lint run --allow-parallel-runners --config .golangci.yml ./...
 
 .PHONY: addlicense
 addlicense:

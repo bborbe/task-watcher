@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file.
 
+## v0.18.2
+
+- update go 1.26.1 → 1.26.2
+- update vault-cli v0.48.6 → v0.52.2
+- update bborbe/* deps (errors, collection, math, parse, run, time, validation)
+- update golangci-lint v2.11.3 → v2.11.4, osv-scanner v2.3.4 → v2.3.5
+- update golang.org/x/sys, term, google genproto and misc indirect deps
+
 ## v0.18.1
 
 - Update Go dependencies across the board
