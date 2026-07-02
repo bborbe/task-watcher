@@ -43,6 +43,7 @@ id = "GO-2026-4887"
 reason = "github.com/docker/docker v28.5.2+incompatible transitive dep from lib-httpclient via osv-scanner/tools.go, no compatible fix version available (docker uses +incompatible versioning)"
 
 [[IgnoredVulns]]
+[[IgnoredVulns]]
 id = "GHSA-fqw6-gf59-qr4w"
 reason = "go.etcd.io/containerd v1.7.29 transitive dep from lib-httpclient via osv-scanner, cannot upgrade in container (network blocked to go.etcd.io), tracked separately"
 
@@ -63,9 +64,25 @@ id = "GHSA-cvxm-645q-p574"
 reason = "github.com/containerd/containerd v1.7.33 transitive dep, no fix available (v1 EOL, fix requires upgrade to v2)"
 
 [[IgnoredVulns]]
+id = "GO-2026-5475"
+reason = "github.com/containerd/containerd indirect dep, no fix available"
+
+[[IgnoredVulns]]
 id = "GO-2026-5622"
 reason = "github.com/containerd/containerd v1.7.33 transitive dep, no fix available (v1 EOL, fix requires upgrade to v2)"
 
 [[IgnoredVulns]]
 id = "GHSA-rgh6-rfwx-v388"
 reason = "github.com/containerd/containerd v1.7.33 transitive dep, no fix available (v1 EOL, fix requires upgrade to v2)"
+
+[[IgnoredVulns]]
+id = "GHSA-jpcc-p29g-p8mq"
+reason = "github.com/containerd/containerd indirect dep, no fix available"
+
+[[IgnoredVulns]]
+id = "GO-2026-5758"
+reason = "github.com/containerd/containerd indirect dep, no fix available"
+
+[[IgnoredVulns]]
+id = "GHSA-xhf5-7wjv-pqxp"
+reason = "github.com/containerd/containerd indirect dep, no fix available"
