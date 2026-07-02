@@ -50,7 +50,7 @@ func NewWatcher(cfg config.Config, notifiers []notify.Notifier) Watcher {
 		targets = append(targets, ops.WatchTarget{
 			VaultPath: v.Path,
 			VaultName: v.Name,
-			WatchDirs: []string{v.TasksDir},
+			WatchDirs: []ops.WatchDir{{Dir: v.TasksDir}},
 		})
 	}
 
@@ -108,31 +108,31 @@ func (w *watcher) handleEvent(ctx context.Context, event ops.WatchEvent) error {
 		slog.Debug("skip unreadable task", "name", event.Name, "error", err)
 		return nil
 	}
-	if task.Assignee == "" || task.Status == "" || task.Phase == nil {
+	if task.Assignee() == "" || task.Status() == "" || task.Phase() == nil {
 		return nil
 	}
 
 	notification := notify.Notification{
 		TaskName: task.Name,
-		Phase:    string(*task.Phase),
-		Assignee: task.Assignee,
+		Phase:    task.Phase().String(),
+		Assignee: task.Assignee(),
 	}
 
 	for _, entry := range w.entries {
-		if entry.assignee != "" && task.Assignee != entry.assignee {
+		if entry.assignee != "" && task.Assignee() != entry.assignee {
 			continue
 		}
-		if len(entry.statuses) > 0 && !containsString(entry.statuses, string(task.Status)) {
+		if len(entry.statuses) > 0 && !containsString(entry.statuses, task.Status().String()) {
 			continue
 		}
-		if len(entry.phases) > 0 && !containsString(entry.phases, string(*task.Phase)) {
+		if len(entry.phases) > 0 && !containsString(entry.phases, task.Phase().String()) {
 			continue
 		}
 		if err := entry.notifier.Notify(ctx, notification); err != nil {
 			slog.Error("notify failed",
 				"watcher", entry.name,
 				"task", task.Name,
-				"phase", string(*task.Phase),
+				"phase", task.Phase().String(),
 				"error", err,
 			)
 			// Continue to next watcher — one failure must not block others
