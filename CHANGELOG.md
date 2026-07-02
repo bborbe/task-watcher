@@ -2,7 +2,7 @@
 
 All notable changes to this project will be documented in this file.
 
-## v0.18.2
+## Unreleased
 
 - feat: Add XDG config directory support ($XDG_CONFIG_HOME/task-watcher/) with legacy ~/.task-watcher/ fallback
 - update go 1.26.1 → 1.26.2
