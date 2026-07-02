@@ -1,8 +1,8 @@
 ---
 status: completed
-spec: ["003"]
+spec: [003-multi-watcher-config]
 summary: Added Telegram Bot API notifier and log notifier, deleted dry_run notifiers, updated factory and tests
-container: task-watcher-021-spec-003-telegram
+execution_id: task-watcher-021-spec-003-telegram
 dark-factory-version: v0.67.3-dirty
 created: "2026-03-22T10:00:00Z"
 queued: "2026-03-22T11:25:01Z"

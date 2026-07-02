@@ -107,7 +107,7 @@ func Run(ctx context.Context, args []string) error {
 	}
 
 	rootCmd.Flags().
-		StringVar(&configPath, "config", "", "path to config YAML file (default: ~/.task-watcher/config.yaml)")
+		StringVar(&configPath, "config", "", "path to config YAML file (default: $XDG_CONFIG_HOME/task-watcher/config.yaml, fallback: ~/.task-watcher/config.yaml)")
 	rootCmd.Flags().BoolVar(&verbose, "verbose", false, "enable debug logging")
 
 	rootCmd.SetArgs(args)

@@ -7,6 +7,7 @@ package config_test
 import (
 	"context"
 	"os"
+	"path/filepath"
 	"time"
 
 	. "github.com/onsi/ginkgo/v2"
@@ -480,6 +481,80 @@ watchers:
 			// Verifies that empty filePath resolves to default path without panicking.
 			// Result depends on whether ~/.task-watcher/config.yaml exists locally.
 			_, _ = config.NewLoader("").Load(ctx)
+		})
+	})
+
+	Context("findConfigDir", func() {
+		It("prefers XDG config dir when it exists and legacy does not", func() {
+			ctx := context.Background()
+			homeDir := GinkgoT().TempDir()
+			xdgDir := filepath.Join(homeDir, ".config", "task-watcher")
+			Expect(os.MkdirAll(xdgDir, 0755)).To(Succeed())
+			GinkgoT().Setenv("HOME", homeDir)
+			GinkgoT().Setenv("XDG_CONFIG_HOME", filepath.Join(homeDir, ".config"))
+
+			_, err := config.NewLoader("").Load(ctx)
+			Expect(err).To(HaveOccurred())
+			Expect(err.Error()).To(ContainSubstring(filepath.Join(xdgDir, "config.yaml")))
+		})
+
+		It("falls back to legacy dir when XDG dir does not exist but legacy does", func() {
+			ctx := context.Background()
+			homeDir := GinkgoT().TempDir()
+			legacyDir := filepath.Join(homeDir, ".task-watcher")
+			Expect(os.MkdirAll(legacyDir, 0755)).To(Succeed())
+			GinkgoT().Setenv("HOME", homeDir)
+			GinkgoT().Setenv("XDG_CONFIG_HOME", filepath.Join(homeDir, ".nonexistent-config"))
+
+			_, err := config.NewLoader("").Load(ctx)
+			Expect(err).To(HaveOccurred())
+			Expect(err.Error()).To(ContainSubstring(filepath.Join(legacyDir, "config.yaml")))
+		})
+
+		It("defaults to XDG path when neither XDG nor legacy dir exists", func() {
+			ctx := context.Background()
+			homeDir := GinkgoT().TempDir()
+			GinkgoT().Setenv("HOME", homeDir)
+			GinkgoT().Setenv("XDG_CONFIG_HOME", filepath.Join(homeDir, ".config"))
+
+			_, err := config.NewLoader("").Load(ctx)
+			Expect(err).To(HaveOccurred())
+			expectedPath := filepath.Join(homeDir, ".config", "task-watcher", "config.yaml")
+			Expect(err.Error()).To(ContainSubstring(expectedPath))
+		})
+
+		It("prefers XDG config dir when both XDG and legacy dirs exist", func() {
+			ctx := context.Background()
+			homeDir := GinkgoT().TempDir()
+			xdgDir := filepath.Join(homeDir, ".config", "task-watcher")
+			legacyDir := filepath.Join(homeDir, ".task-watcher")
+			Expect(os.MkdirAll(xdgDir, 0755)).To(Succeed())
+			Expect(os.MkdirAll(legacyDir, 0755)).To(Succeed())
+			GinkgoT().Setenv("HOME", homeDir)
+			GinkgoT().Setenv("XDG_CONFIG_HOME", filepath.Join(homeDir, ".config"))
+
+			_, err := config.NewLoader("").Load(ctx)
+			Expect(err).To(HaveOccurred())
+			Expect(err.Error()).To(ContainSubstring(filepath.Join(xdgDir, "config.yaml")))
+		})
+
+		It("ignores XDG path when it exists as a file not a directory", func() {
+			ctx := context.Background()
+			homeDir := GinkgoT().TempDir()
+			xdgConfigDir := filepath.Join(homeDir, ".config")
+			Expect(os.MkdirAll(xdgConfigDir, 0755)).To(Succeed())
+			// Create "task-watcher" as a regular file inside .config, not a directory.
+			xdgFilePath := filepath.Join(xdgConfigDir, "task-watcher")
+			Expect(os.WriteFile(xdgFilePath, []byte("not a dir"), 0644)).To(Succeed())
+			// Legacy dir exists so it should be picked.
+			legacyDir := filepath.Join(homeDir, ".task-watcher")
+			Expect(os.MkdirAll(legacyDir, 0755)).To(Succeed())
+			GinkgoT().Setenv("HOME", homeDir)
+			GinkgoT().Setenv("XDG_CONFIG_HOME", xdgConfigDir)
+
+			_, err := config.NewLoader("").Load(ctx)
+			Expect(err).To(HaveOccurred())
+			Expect(err.Error()).To(ContainSubstring(filepath.Join(legacyDir, "config.yaml")))
 		})
 	})
 })

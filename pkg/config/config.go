@@ -90,15 +90,45 @@ type rawConfig struct {
 	OldDedupTTL  string   `yaml:"dedup_ttl"`
 }
 
-func resolveFilePath(filePath string) (string, error) {
-	if filePath != "" {
-		return filePath, nil
+// findConfigDir returns the config directory path.
+// Prefers XDG ($XDG_CONFIG_HOME/task-watcher or ~/.config/task-watcher).
+// Falls back to legacy ~/.task-watcher/ if it exists.
+// When neither exists, returns the XDG path as default.
+func findConfigDir() (string, error) {
+	userConfigDir, err := os.UserConfigDir()
+	if err != nil {
+		return "", err
 	}
+	xdgDir := filepath.Join(userConfigDir, "task-watcher")
+
+	// If XDG dir exists, use it.
+	if info, err := os.Stat(xdgDir); err == nil && info.IsDir() {
+		return xdgDir, nil
+	}
+
+	// Fall back to legacy dir if it exists.
 	homeDir, err := os.UserHomeDir()
 	if err != nil {
 		return "", err
 	}
-	return filepath.Join(homeDir, ".task-watcher", "config.yaml"), nil
+	legacyDir := filepath.Join(homeDir, ".task-watcher")
+	if info, err := os.Stat(legacyDir); err == nil && info.IsDir() {
+		return legacyDir, nil
+	}
+
+	// Neither exists — default to XDG path.
+	return xdgDir, nil
+}
+
+func resolveFilePath(filePath string) (string, error) {
+	if filePath != "" {
+		return filePath, nil
+	}
+	configDir, err := findConfigDir()
+	if err != nil {
+		return "", err
+	}
+	return filepath.Join(configDir, "config.yaml"), nil
 }
 
 func parseVaults(ctx context.Context, rawVaults map[string]rawVaultEntry) ([]VaultConfig, error) {

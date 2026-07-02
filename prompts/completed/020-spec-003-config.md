@@ -1,8 +1,8 @@
 ---
 status: completed
-spec: ["003"]
+spec: [003-multi-watcher-config]
 summary: Replaced flat Config struct with WatcherConfig/watchers list format, added backward-compat detection for old flat fields, rewrote config tests, stubbed factory notifier functions, removed filter logic from watcher, and updated all dependent tests to compile and pass.
-container: task-watcher-020-spec-003-config
+execution_id: task-watcher-020-spec-003-config
 dark-factory-version: v0.67.3-dirty
 created: "2026-03-22T10:00:00Z"
 queued: "2026-03-22T11:25:01Z"

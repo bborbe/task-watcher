@@ -1,8 +1,8 @@
 ---
 status: completed
-spec: ["001"]
+spec: [001-core-packages]
 summary: Implemented pkg/config with YAML config loader, field validation, ~/  expansion, Ginkgo tests at 91.7% coverage, and Counterfeiter mock generation.
-container: task-watcher-003-spec-001-config
+execution_id: task-watcher-003-spec-001-config
 dark-factory-version: v0.59.5-dirty
 created: "2026-03-20T19:15:00Z"
 queued: "2026-03-20T22:00:54Z"
