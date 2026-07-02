@@ -1,6 +1,9 @@
 # github.com/docker/docker indirect dep, no fix available via Go modules
 CVE-2026-34040
 CVE-2026-33997
+CVE-2026-41567
+CVE-2026-42306
+CVE-2026-41568
 
 # go.etcd.io/bbolt v1.4.3 dep, no fix available
 CVE-2026-33817
@@ -8,10 +11,16 @@ CVE-2026-33817
 # github.com/blevesearch/bleve v1.0.14, no fix available (bleve v1 EOL)
 CVE-2022-31022
 
-# rpyc 5.3.1 pinned across all services, do not upgrade
-CVE-2024-27758
+# aws-sdk-go-v2 s3/eventstream DoS, upgrade pending — BRO-20006
+GHSA-xmrv-pmrh-hhx2
 
-# additional docker CVEs, no fix available upstream
-CVE-2026-41568
-CVE-2026-41567
-CVE-2026-42306
+# vue 2.7.16 ReDoS, LOW; fix is 3.0.0-alpha.0 (major migration not feasible)
+CVE-2024-9506
+
+# Fix v1.7.32 is available but network blocked to go.etcd.io from container
+CVE-2026-46680
+
+# github.com/containerd/containerd v1.7.33 transitive deps, no fix available (v1 EOL, fix requires v2)
+CVE-2026-53492
+CVE-2026-50195
+CVE-2026-53489
