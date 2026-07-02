@@ -1,12 +1,12 @@
 ---
-status: committing
+status: completed
 summary: Added XDG config directory support to task-watcher with graceful fallback to legacy ~/.task-watcher/
 execution_id: task-watcher-exec-023-xdg-config-support
 dark-factory-version: v0.191.0
 created: "2026-07-02T00:00:00Z"
 queued: "2026-07-02T16:19:32Z"
 started: "2026-07-02T16:45:11Z"
-completed: "2026-07-02T16:47:29Z"
+completed: "2026-07-02T16:47:42Z"
 ---
 
 <summary>
