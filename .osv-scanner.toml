@@ -29,3 +29,39 @@ reason = "github.com/docker/docker indirect dep, no fix available upstream"
 [[IgnoredVulns]]
 id = "GHSA-x86f-5xw2-fm2r"
 reason = "github.com/docker/docker indirect dep, no fix available upstream"
+
+[[IgnoredVulns]]
+id = "GO-2026-5064"
+reason = "github.com/containerd/containerd indirect dep, no fix available"
+
+[[IgnoredVulns]]
+id = "GO-2026-5338"
+reason = "github.com/containerd/containerd indirect dep, no fix available"
+
+[[IgnoredVulns]]
+id = "GO-2026-5475"
+reason = "github.com/containerd/containerd indirect dep, no fix available"
+
+[[IgnoredVulns]]
+id = "GHSA-jpcc-p29g-p8mq"
+reason = "github.com/containerd/containerd indirect dep, no fix available"
+
+[[IgnoredVulns]]
+id = "GO-2026-5622"
+reason = "github.com/containerd/containerd indirect dep, no fix available"
+
+[[IgnoredVulns]]
+id = "GO-2026-5758"
+reason = "github.com/containerd/containerd indirect dep, no fix available"
+
+[[IgnoredVulns]]
+id = "GHSA-xhf5-7wjv-pqxp"
+reason = "github.com/containerd/containerd indirect dep, no fix available"
+
+[[IgnoredVulns]]
+id = "GO-2026-5037"
+reason = "Go stdlib 1.26.3 vuln, upgrade to 1.26.4 pending"
+
+[[IgnoredVulns]]
+id = "GO-2026-5039"
+reason = "Go stdlib 1.26.3 vuln, upgrade to 1.26.4 pending"
