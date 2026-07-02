@@ -91,15 +91,15 @@ type rawConfig struct {
 }
 
 // findConfigDir returns the config directory path.
-// Prefers XDG ($XDG_CONFIG_HOME/task-watcher or ~/.config/task-watcher).
+// Prefers XDG (~/.config/task-watcher).
 // Falls back to legacy ~/.task-watcher/ if it exists.
 // When neither exists, returns the XDG path as default.
 func findConfigDir() (string, error) {
-	userConfigDir, err := os.UserConfigDir()
+	homeDir, err := os.UserHomeDir()
 	if err != nil {
 		return "", err
 	}
-	xdgDir := filepath.Join(userConfigDir, "task-watcher")
+	xdgDir := filepath.Join(homeDir, ".config", "task-watcher")
 
 	// If XDG dir exists, use it.
 	if info, err := os.Stat(xdgDir); err == nil && info.IsDir() {
@@ -107,10 +107,6 @@ func findConfigDir() (string, error) {
 	}
 
 	// Fall back to legacy dir if it exists.
-	homeDir, err := os.UserHomeDir()
-	if err != nil {
-		return "", err
-	}
 	legacyDir := filepath.Join(homeDir, ".task-watcher")
 	if info, err := os.Stat(legacyDir); err == nil && info.IsDir() {
 		return legacyDir, nil
