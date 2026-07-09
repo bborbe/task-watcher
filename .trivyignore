@@ -24,3 +24,6 @@ CVE-2026-46680
 CVE-2026-53492
 CVE-2026-50195
 CVE-2026-53489
+
+# golang.org/x/crypto/openpgp unmaintained (no fix will ship) — advisory deprecates the package
+GO-2026-5932

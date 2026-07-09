@@ -86,3 +86,7 @@ reason = "github.com/containerd/containerd indirect dep, no fix available"
 [[IgnoredVulns]]
 id = "GHSA-xhf5-7wjv-pqxp"
 reason = "github.com/containerd/containerd indirect dep, no fix available"
+
+[[IgnoredVulns]]
+id = "GO-2026-5932"
+reason = "golang.org/x/crypto/openpgp unmaintained, no fix will ship — advisory deprecates the package"
