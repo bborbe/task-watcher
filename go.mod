@@ -1,6 +1,6 @@
 module github.com/bborbe/task-watcher
 
-go 1.26.4
+go 1.26.5
 
 replace (
 	github.com/charmbracelet/x/cellbuf => github.com/charmbracelet/x/cellbuf v0.0.15
@@ -11,8 +11,8 @@ replace (
 )
 
 require (
-	github.com/bborbe/errors v1.5.13
-	github.com/bborbe/vault-cli v0.96.0
+	github.com/bborbe/errors v1.5.16
+	github.com/bborbe/vault-cli v0.96.6
 	github.com/golangci/golangci-lint/v2 v2.12.2
 	github.com/google/addlicense v1.2.0
 	github.com/google/osv-scanner/v2 v2.4.0
@@ -90,12 +90,12 @@ require (
 	github.com/ayoubfaouzi/pkcs7 v0.2.3 // indirect
 	github.com/bahlo/generic-list-go v0.2.0 // indirect
 	github.com/bazelbuild/buildtools v0.0.0-20260319080235-05d2ebe49b0f // indirect
-	github.com/bborbe/collection v1.20.13 // indirect
-	github.com/bborbe/math v1.3.11 // indirect
-	github.com/bborbe/parse v1.10.13 // indirect
-	github.com/bborbe/run v1.9.28 // indirect
-	github.com/bborbe/time v1.27.1 // indirect
-	github.com/bborbe/validation v1.4.14 // indirect
+	github.com/bborbe/collection v1.20.17 // indirect
+	github.com/bborbe/math v1.3.12 // indirect
+	github.com/bborbe/parse v1.10.16 // indirect
+	github.com/bborbe/run v1.9.30 // indirect
+	github.com/bborbe/time v1.27.5 // indirect
+	github.com/bborbe/validation v1.4.16 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
 	github.com/bkielbasa/cyclop v1.2.3 // indirect
 	github.com/blizzy78/varnamelen v0.8.0 // indirect
@@ -410,9 +410,9 @@ require (
 	golang.org/x/net v0.56.0 // indirect
 	golang.org/x/oauth2 v0.36.0 // indirect
 	golang.org/x/sync v0.21.0 // indirect
-	golang.org/x/sys v0.46.0 // indirect
+	golang.org/x/sys v0.47.0 // indirect
 	golang.org/x/telemetry v0.0.0-20260625142307-59b4966ccb57 // indirect
-	golang.org/x/term v0.44.0 // indirect
+	golang.org/x/term v0.45.0 // indirect
 	golang.org/x/text v0.38.0 // indirect
 	golang.org/x/tools v0.47.0 // indirect
 	golang.org/x/xerrors v0.0.0-20240903120638-7835f813f4da // indirect

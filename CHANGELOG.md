@@ -2,13 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
-## Unreleased
+## v0.19.0
 
 - feat: Add XDG config directory support ($XDG_CONFIG_HOME/task-watcher/) with legacy ~/.task-watcher/ fallback
-- update go 1.26.1 → 1.26.2
-- update vault-cli v0.48.6 → v0.52.2
+- update go 1.26.1 → 1.26.5
+- update vault-cli v0.48.6 → v0.96.6 (adapt watcher.go to new WatchDir/Task accessor API)
 - update bborbe/* deps (errors, collection, math, parse, run, time, validation)
-- update golangci-lint v2.11.3 → v2.11.4, osv-scanner v2.3.4 → v2.3.5
+- update golangci-lint v2.11.3 → v2.12.2, osv-scanner v2.3.4 → v2.4.0
 - update golang.org/x/sys, term, google genproto and misc indirect deps
 
 ## v0.18.1
