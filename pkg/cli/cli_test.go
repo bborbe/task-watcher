@@ -46,6 +46,8 @@ var _ = Describe("Run", func() {
 
 		Expect(out).To(ContainSubstring("--config"))
 		Expect(out).To(ContainSubstring("--verbose"))
+		Expect(out).To(ContainSubstring("~/.config/task-watcher/config.yaml"))
+		Expect(out).NotTo(ContainSubstring("$XDG_CONFIG_HOME"))
 		Expect(strings.Contains(out, "alsologtostderr")).To(BeFalse())
 	})
 })

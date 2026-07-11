@@ -48,8 +48,11 @@ func Run(ctx context.Context, args []string) error {
 	var verbose bool
 
 	rootCmd := &cobra.Command{
-		Use:          "task-watcher",
-		Short:        "Watches vault task files and notifies agents via webhook",
+		Use:   "task-watcher",
+		Short: "Watches vault task files and notifies agents via webhook",
+		Long: `Watches vault task files and notifies agents via webhook.
+
+Configuration: reads ~/.config/task-watcher/config.yaml (XDG), falling back to ~/.task-watcher/config.yaml (legacy). Override with --config.`,
 		Version:      version,
 		SilenceUsage: true,
 		RunE: func(cmd *cobra.Command, _ []string) error {
@@ -107,7 +110,7 @@ func Run(ctx context.Context, args []string) error {
 	}
 
 	rootCmd.Flags().
-		StringVar(&configPath, "config", "", "path to config YAML file (default: $XDG_CONFIG_HOME/task-watcher/config.yaml, fallback: ~/.task-watcher/config.yaml)")
+		StringVar(&configPath, "config", "", "path to config YAML file (default: ~/.config/task-watcher/config.yaml, fallback: ~/.task-watcher/config.yaml)")
 	rootCmd.Flags().BoolVar(&verbose, "verbose", false, "enable debug logging")
 
 	rootCmd.SetArgs(args)
