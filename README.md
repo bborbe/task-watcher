@@ -8,7 +8,7 @@ Watches vault task files for phase/status changes and notifies configured agents
 ## Usage
 
 ```bash
-# default config: $XDG_CONFIG_HOME/task-watcher/config.yaml (fallback: ~/.task-watcher/config.yaml)
+# default config: ~/.config/task-watcher/config.yaml (fallback: ~/.task-watcher/config.yaml)
 task-watcher
 
 # custom config path

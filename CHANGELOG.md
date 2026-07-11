@@ -2,6 +2,10 @@
 
 All notable changes to this project will be documented in this file.
 
+## Unreleased
+
+- fix(help): correct misleading $XDG_CONFIG_HOME wording to the real ~/.config/task-watcher/config.yaml path in --help and README; add config location to command Long help
+
 ## v0.19.0
 
 - feat: Add XDG config directory support ($XDG_CONFIG_HOME/task-watcher/) with legacy ~/.task-watcher/ fallback
