@@ -2,6 +2,10 @@
 
 All notable changes to this project will be documented in this file.
 
+## Unreleased
+
+- Bump `golang.org/x/text` to v0.39.0 (CVE-2026-56852)
+
 ## v0.19.1
 
 - fix(help): correct misleading $XDG_CONFIG_HOME wording to the real ~/.config/task-watcher/config.yaml path in --help and README; add config location to command Long help
