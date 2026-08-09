@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
+## Unreleased
+
+- chore: Delete tools.go — tool CLIs no longer declared as module dependencies; pinned via tools.env and `go run pkg@$(VERSION)` in Makefile
+- chore: Remove all `replace`/`exclude` directives and tool-only requires from go.mod; keep only application deps
+- chore: Bump all `github.com/bborbe/*` deps to latest
+- chore: Bump `golang.org/x/*` transitive deps to latest
+
 ## v0.19.2
 
 - Bump `golang.org/x/text` to v0.39.0 (CVE-2026-56852)
