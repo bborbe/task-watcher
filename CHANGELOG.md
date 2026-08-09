@@ -2,7 +2,7 @@
 
 All notable changes to this project will be documented in this file.
 
-## Unreleased
+## v0.19.3
 
 - chore: Delete tools.go — tool CLIs no longer declared as module dependencies; pinned via tools.env and `go run pkg@$(VERSION)` in Makefile
 - chore: Remove all `replace`/`exclude` directives and tool-only requires from go.mod; keep only application deps
