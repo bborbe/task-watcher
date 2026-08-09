@@ -12,7 +12,7 @@ import (
 	. "github.com/onsi/gomega"
 )
 
-//go:generate go run -mod=mod github.com/maxbrunsfeld/counterfeiter/v6 -generate
+//go:generate go run github.com/maxbrunsfeld/counterfeiter/v6@v6.12.2 -generate
 
 func TestNotify(t *testing.T) {
 	RegisterFailHandler(Fail)
