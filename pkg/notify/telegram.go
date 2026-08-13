@@ -16,6 +16,7 @@ import (
 	"time"
 
 	"github.com/bborbe/errors"
+	libtime "github.com/bborbe/time"
 )
 
 // telegramPayload is the JSON payload sent to the Telegram Bot API sendMessage endpoint.
@@ -75,7 +76,7 @@ func (t *telegramNotifier) Notify(ctx context.Context, notification Notification
 
 	t.mu.Lock()
 	lastSent, exists := t.seen[key]
-	if exists && time.Since(lastSent) < t.dedupTTL {
+	if exists && libtime.Now().Sub(lastSent) < t.dedupTTL {
 		t.mu.Unlock()
 		slog.Debug("telegram skipped (duplicate within TTL)",
 			"task", notification.TaskName,
@@ -85,7 +86,7 @@ func (t *telegramNotifier) Notify(ctx context.Context, notification Notification
 		)
 		return nil
 	}
-	t.seen[key] = time.Now()
+	t.seen[key] = libtime.Now()
 	t.mu.Unlock()
 
 	payload := telegramPayload{

@@ -11,6 +11,7 @@ import (
 	"strings"
 	"time"
 
+	libtime "github.com/bborbe/time"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 
@@ -128,5 +129,42 @@ var _ = Describe("LogNotifier", func() {
 			),
 		).To(Succeed())
 		Expect(strings.Count(buf.String(), "log notifier: task event")).To(Equal(2))
+	})
+})
+
+var _ = Describe("LogNotifier dedup clock", func() {
+	var originalNow func() time.Time
+	var ctx context.Context
+
+	BeforeEach(func() { originalNow = libtime.Now; ctx = context.Background() })
+	AfterEach(func() { libtime.Now = originalNow })
+
+	// Regression: the dedup write and the TTL read must use the SAME clock.
+	// Before this fix the entry was stamped with libtime.Now() but expiry was
+	// measured with time.Since(), so advancing a fake clock past the TTL did
+	// not expire the entry and the second notify was still suppressed.
+	It("expires a dedup entry when the injected clock passes the TTL", func() {
+		current := time.Date(2026, 8, 13, 12, 0, 0, 0, time.UTC)
+		libtime.Now = func() time.Time { return current }
+
+		var buf bytes.Buffer
+		slog.SetDefault(slog.New(slog.NewTextHandler(&buf, nil)))
+
+		notifier := notify.NewLogNotifier(50 * time.Millisecond)
+		n := notify.Notification{TaskName: "t", Phase: "p"}
+
+		Expect(notifier.Notify(ctx, n)).To(Succeed())
+		first := strings.Count(buf.String(), "log notifier: task event")
+
+		// Same instant: still inside the TTL, so this one is deduped.
+		Expect(notifier.Notify(ctx, n)).To(Succeed())
+		Expect(strings.Count(buf.String(), "log notifier: task event")).To(Equal(first))
+
+		// Advance the injected clock past the TTL -- no real sleeping.
+		current = current.Add(time.Second)
+		Expect(notifier.Notify(ctx, n)).To(Succeed())
+		Expect(
+			strings.Count(buf.String(), "log notifier: task event"),
+		).To(BeNumerically(">", first))
 	})
 })

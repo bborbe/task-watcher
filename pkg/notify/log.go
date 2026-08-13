@@ -9,6 +9,8 @@ import (
 	"log/slog"
 	"sync"
 	"time"
+
+	libtime "github.com/bborbe/time"
 )
 
 // NewLogNotifier returns a Notifier that logs notifications to stdout instead of sending HTTP requests.
@@ -31,7 +33,7 @@ func (l *logNotifier) Notify(_ context.Context, notification Notification) error
 
 	l.mu.Lock()
 	lastSent, exists := l.seen[key]
-	if exists && time.Since(lastSent) < l.dedupTTL {
+	if exists && libtime.Now().Sub(lastSent) < l.dedupTTL {
 		l.mu.Unlock()
 		slog.Debug("log notifier skipped (duplicate within TTL)",
 			"task", notification.TaskName,
@@ -41,7 +43,7 @@ func (l *logNotifier) Notify(_ context.Context, notification Notification) error
 		)
 		return nil
 	}
-	l.seen[key] = time.Now()
+	l.seen[key] = libtime.Now()
 	l.mu.Unlock()
 
 	slog.Info("log notifier: task event",

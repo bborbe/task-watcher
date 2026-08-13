@@ -16,6 +16,7 @@ import (
 	"time"
 
 	"github.com/bborbe/errors"
+	libtime "github.com/bborbe/time"
 )
 
 // openClawPayload is the JSON payload sent to the OpenClaw /hooks/wake endpoint.
@@ -54,7 +55,7 @@ func (n *openClawNotifier) Notify(ctx context.Context, notification Notification
 
 	n.mu.Lock()
 	lastSent, exists := n.seen[key]
-	if exists && time.Since(lastSent) < n.dedupTTL {
+	if exists && libtime.Now().Sub(lastSent) < n.dedupTTL {
 		n.mu.Unlock()
 		slog.Debug("webhook skipped (duplicate within TTL)",
 			"task", notification.TaskName,
@@ -64,7 +65,7 @@ func (n *openClawNotifier) Notify(ctx context.Context, notification Notification
 		)
 		return nil
 	}
-	n.seen[key] = time.Now()
+	n.seen[key] = libtime.Now()
 	n.mu.Unlock()
 
 	payload := openClawPayload{
