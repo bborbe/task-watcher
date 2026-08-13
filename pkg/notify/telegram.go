@@ -76,7 +76,7 @@ func (t *telegramNotifier) Notify(ctx context.Context, notification Notification
 
 	t.mu.Lock()
 	lastSent, exists := t.seen[key]
-	if exists && time.Since(lastSent) < t.dedupTTL {
+	if exists && libtime.Now().Sub(lastSent) < t.dedupTTL {
 		t.mu.Unlock()
 		slog.Debug("telegram skipped (duplicate within TTL)",
 			"task", notification.TaskName,

@@ -55,7 +55,7 @@ func (n *openClawNotifier) Notify(ctx context.Context, notification Notification
 
 	n.mu.Lock()
 	lastSent, exists := n.seen[key]
-	if exists && time.Since(lastSent) < n.dedupTTL {
+	if exists && libtime.Now().Sub(lastSent) < n.dedupTTL {
 		n.mu.Unlock()
 		slog.Debug("webhook skipped (duplicate within TTL)",
 			"task", notification.TaskName,

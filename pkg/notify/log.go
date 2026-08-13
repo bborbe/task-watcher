@@ -33,7 +33,7 @@ func (l *logNotifier) Notify(_ context.Context, notification Notification) error
 
 	l.mu.Lock()
 	lastSent, exists := l.seen[key]
-	if exists && time.Since(lastSent) < l.dedupTTL {
+	if exists && libtime.Now().Sub(lastSent) < l.dedupTTL {
 		l.mu.Unlock()
 		slog.Debug("log notifier skipped (duplicate within TTL)",
 			"task", notification.TaskName,
