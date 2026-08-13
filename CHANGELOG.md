@@ -2,6 +2,10 @@
 
 All notable changes to this project will be documented in this file.
 
+## Unreleased
+
+- fix: stamp notification dedup entries with the injectable libtime clock instead of time.Now
+
 ## v0.19.3
 
 - chore: Delete tools.go — tool CLIs no longer declared as module dependencies; pinned via tools.env and `go run pkg@$(VERSION)` in Makefile

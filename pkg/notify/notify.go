@@ -16,6 +16,7 @@ import (
 	"time"
 
 	"github.com/bborbe/errors"
+	libtime "github.com/bborbe/time"
 )
 
 // Notification holds the data sent to the webhook.
@@ -65,7 +66,7 @@ func (n *notifier) Notify(ctx context.Context, notification Notification) error 
 		)
 		return nil
 	}
-	n.seen[key] = time.Now()
+	n.seen[key] = libtime.Now()
 	n.mu.Unlock()
 
 	body, err := json.Marshal(notification)

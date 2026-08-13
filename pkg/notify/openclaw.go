@@ -16,6 +16,7 @@ import (
 	"time"
 
 	"github.com/bborbe/errors"
+	libtime "github.com/bborbe/time"
 )
 
 // openClawPayload is the JSON payload sent to the OpenClaw /hooks/wake endpoint.
@@ -64,7 +65,7 @@ func (n *openClawNotifier) Notify(ctx context.Context, notification Notification
 		)
 		return nil
 	}
-	n.seen[key] = time.Now()
+	n.seen[key] = libtime.Now()
 	n.mu.Unlock()
 
 	payload := openClawPayload{
