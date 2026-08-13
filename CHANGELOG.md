@@ -2,7 +2,7 @@
 
 All notable changes to this project will be documented in this file.
 
-## Unreleased
+## v0.19.4
 
 - fix: stamp AND expire notification dedup entries with the injectable libtime clock (both sides, not just the write)
 - test: add a fake-clock regression spec proving TTL expiry without sleeping
