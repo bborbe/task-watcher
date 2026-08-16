@@ -2,6 +2,10 @@
 
 All notable changes to this project will be documented in this file.
 
+## Unreleased
+
+- update Go to 1.26.6 and update dependencies, fixing GO-2026-5026, GO-2026-5972, GO-2026-6090, GO-2026-6218
+
 ## v0.19.4
 
 - fix: stamp AND expire notification dedup entries with the injectable libtime clock (both sides, not just the write)
