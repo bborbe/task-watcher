@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented in this file.
 
+## v0.19.6
+
+- chore: Run `gofmt -w` last in the `format` target so golines wrapping is normalized before the gofmt lint check passes
+- chore: Bump golangci-lint to v2.13.1 and errcheck to v1.20.0 for Go 1.27.0 toolchain compatibility
+
 ## v0.19.5
 
 - update Go to 1.26.6 and update dependencies, fixing GO-2026-5026, GO-2026-5972, GO-2026-6090, GO-2026-6218
