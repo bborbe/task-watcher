@@ -6,6 +6,8 @@ All notable changes to this project will be documented in this file.
 ## Unreleased
 
 - exclude no-fix docker/containerd advisories in checker config (GO-2026-4883/4887/5064/5338/5622/5932 v1 no-fix)
+- chore: update Go to 1.27.0 and github.com/bborbe/errors to v1.5.20, github.com/bborbe/time to v1.27.10, github.com/bborbe/vault-cli to v0.114.6, github.com/onsi/ginkgo/v2 to v2.32.1
+
 ## v0.19.6
 
 - chore: Run `gofmt -w` last in the `format` target so golines wrapping is normalized before the gofmt lint check passes
