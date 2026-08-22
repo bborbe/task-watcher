@@ -2,6 +2,10 @@
 
 All notable changes to this project will be documented in this file.
 
+
+## Unreleased
+
+- exclude no-fix docker/containerd advisories in checker config (GO-2026-4883/4887/5064/5338/5622/5932 v1 no-fix)
 ## v0.19.6
 
 - chore: Run `gofmt -w` last in the `format` target so golines wrapping is normalized before the gofmt lint check passes
