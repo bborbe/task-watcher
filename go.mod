@@ -1,12 +1,12 @@
 module github.com/bborbe/task-watcher
 
-go 1.26.6
+go 1.27.0
 
 require (
-	github.com/bborbe/errors v1.5.17
-	github.com/bborbe/time v1.27.8
-	github.com/bborbe/vault-cli v0.111.3
-	github.com/onsi/ginkgo/v2 v2.32.0
+	github.com/bborbe/errors v1.5.20
+	github.com/bborbe/time v1.27.10
+	github.com/bborbe/vault-cli v0.114.6
+	github.com/onsi/ginkgo/v2 v2.32.1
 	github.com/onsi/gomega v1.42.1
 	github.com/spf13/cobra v1.10.2
 	gopkg.in/yaml.v3 v3.0.1
@@ -14,11 +14,11 @@ require (
 
 require (
 	github.com/Masterminds/semver/v3 v3.4.0 // indirect
-	github.com/bborbe/collection v1.20.20 // indirect
-	github.com/bborbe/math v1.3.18 // indirect
-	github.com/bborbe/parse v1.10.19 // indirect
-	github.com/bborbe/run v1.9.34 // indirect
-	github.com/bborbe/validation v1.4.18 // indirect
+	github.com/bborbe/collection v1.20.23 // indirect
+	github.com/bborbe/math v1.3.21 // indirect
+	github.com/bborbe/parse v1.10.21 // indirect
+	github.com/bborbe/run v1.9.37 // indirect
+	github.com/bborbe/validation v1.4.21 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
 	github.com/cespare/xxhash/v2 v2.3.0 // indirect
 	github.com/fsnotify/fsnotify v1.10.1 // indirect
@@ -37,7 +37,7 @@ require (
 	github.com/prometheus/common v0.70.1 // indirect
 	github.com/prometheus/procfs v0.21.1 // indirect
 	github.com/spf13/pflag v1.0.10 // indirect
-	go.yaml.in/yaml/v3 v3.0.4 // indirect
+	go.yaml.in/yaml/v3 v3.0.5 // indirect
 	golang.org/x/mod v0.40.0 // indirect
 	golang.org/x/net v0.58.0 // indirect
 	golang.org/x/sync v0.22.0 // indirect
