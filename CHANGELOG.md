@@ -3,6 +3,10 @@
 All notable changes to this project will be documented in this file.
 
 
+## Unreleased
+
+- chore: update github.com/bborbe/vault-cli to v0.118.6
+
 ## v0.20.2
 
 - chore: update github.com/bborbe/vault-cli to v0.118.5
