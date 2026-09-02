@@ -5,7 +5,7 @@ go 1.27.0
 require (
 	github.com/bborbe/errors v1.6.0
 	github.com/bborbe/time v1.27.11
-	github.com/bborbe/vault-cli v0.118.6
+	github.com/bborbe/vault-cli v0.121.0
 	github.com/onsi/ginkgo/v2 v2.32.1
 	github.com/onsi/gomega v1.42.1
 	github.com/spf13/cobra v1.10.2
