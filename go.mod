@@ -3,9 +3,9 @@ module github.com/bborbe/task-watcher
 go 1.27.0
 
 require (
-	github.com/bborbe/errors v1.5.20
-	github.com/bborbe/time v1.27.10
-	github.com/bborbe/vault-cli v0.114.6
+	github.com/bborbe/errors v1.6.0
+	github.com/bborbe/time v1.27.11
+	github.com/bborbe/vault-cli v0.118.4
 	github.com/onsi/ginkgo/v2 v2.32.1
 	github.com/onsi/gomega v1.42.1
 	github.com/spf13/cobra v1.10.2
@@ -14,15 +14,15 @@ require (
 
 require (
 	github.com/Masterminds/semver/v3 v3.4.0 // indirect
-	github.com/bborbe/collection v1.20.23 // indirect
-	github.com/bborbe/math v1.3.21 // indirect
-	github.com/bborbe/parse v1.10.21 // indirect
-	github.com/bborbe/run v1.9.37 // indirect
-	github.com/bborbe/validation v1.4.21 // indirect
+	github.com/bborbe/collection v1.20.25 // indirect
+	github.com/bborbe/math v1.4.8 // indirect
+	github.com/bborbe/parse v1.11.0 // indirect
+	github.com/bborbe/run v1.10.1 // indirect
+	github.com/bborbe/validation v1.4.23 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
 	github.com/cespare/xxhash/v2 v2.3.0 // indirect
 	github.com/fsnotify/fsnotify v1.10.1 // indirect
-	github.com/getsentry/sentry-go v0.48.0 // indirect
+	github.com/getsentry/sentry-go v0.49.0 // indirect
 	github.com/go-logr/logr v1.4.3 // indirect
 	github.com/go-task/slim-sprig/v3 v3.0.0 // indirect
 	github.com/golang/glog v1.2.5 // indirect
@@ -33,9 +33,9 @@ require (
 	github.com/munnerz/goautoneg v0.0.0-20191010083416-a7dc8b61c822 // indirect
 	github.com/pkg/errors v0.9.1 // indirect
 	github.com/prometheus/client_golang v1.24.1 // indirect
-	github.com/prometheus/client_model v0.6.2 // indirect
-	github.com/prometheus/common v0.70.1 // indirect
-	github.com/prometheus/procfs v0.21.1 // indirect
+	github.com/prometheus/client_model v0.6.3 // indirect
+	github.com/prometheus/common v0.71.0 // indirect
+	github.com/prometheus/procfs v0.22.0 // indirect
 	github.com/spf13/pflag v1.0.10 // indirect
 	go.yaml.in/yaml/v3 v3.0.5 // indirect
 	golang.org/x/mod v0.40.0 // indirect
