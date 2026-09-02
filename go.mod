@@ -5,7 +5,7 @@ go 1.27.0
 require (
 	github.com/bborbe/errors v1.6.0
 	github.com/bborbe/time v1.27.11
-	github.com/bborbe/vault-cli v0.118.4
+	github.com/bborbe/vault-cli v0.118.5
 	github.com/onsi/ginkgo/v2 v2.32.1
 	github.com/onsi/gomega v1.42.1
 	github.com/spf13/cobra v1.10.2
@@ -17,7 +17,7 @@ require (
 	github.com/bborbe/collection v1.20.25 // indirect
 	github.com/bborbe/math v1.4.8 // indirect
 	github.com/bborbe/parse v1.11.0 // indirect
-	github.com/bborbe/run v1.10.1 // indirect
+	github.com/bborbe/run v1.10.2 // indirect
 	github.com/bborbe/validation v1.4.23 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
 	github.com/cespare/xxhash/v2 v2.3.0 // indirect
