@@ -3,6 +3,10 @@
 All notable changes to this project will be documented in this file.
 
 
+## Unreleased
+
+- chore: update github.com/bborbe/time to v1.27.12, github.com/bborbe/vault-cli to v0.121.3, github.com/onsi/gomega to v1.43.0
+
 ## v0.20.4
 
 - chore: update github.com/bborbe/vault-cli to v0.121.0
