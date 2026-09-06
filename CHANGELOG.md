@@ -3,7 +3,7 @@
 All notable changes to this project will be documented in this file.
 
 
-## Unreleased
+## v0.20.6
 
 - chore: update Go to 1.27.1 and github.com/bborbe/errors to v1.6.1, github.com/bborbe/time to v1.27.14, github.com/bborbe/vault-cli to v0.126.3
 
