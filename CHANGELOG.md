@@ -3,6 +3,10 @@
 All notable changes to this project will be documented in this file.
 
 
+## Unreleased
+
+- chore: update Go to 1.27.1 and github.com/bborbe/errors to v1.6.1, github.com/bborbe/time to v1.27.14, github.com/bborbe/vault-cli to v0.126.3
+
 ## v0.20.5
 
 - chore: update github.com/bborbe/time to v1.27.12, github.com/bborbe/vault-cli to v0.121.3, github.com/onsi/gomega to v1.43.0
