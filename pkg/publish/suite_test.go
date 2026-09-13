@@ -1,0 +1,22 @@
+// Copyright (c) 2025 Benjamin Borbe All rights reserved.
+// Use of this source code is governed by a BSD-style
+// license that can be found in the LICENSE file.
+
+package publish_test
+
+import (
+	"testing"
+	"time"
+
+	. "github.com/onsi/ginkgo/v2"
+	. "github.com/onsi/gomega"
+)
+
+//go:generate go run github.com/maxbrunsfeld/counterfeiter/v6@v6.12.2 -generate
+
+func TestPublish(t *testing.T) {
+	RegisterFailHandler(Fail)
+	suiteConfig, reporterConfig := GinkgoConfiguration()
+	suiteConfig.Timeout = 60 * time.Second
+	RunSpecs(t, "Publish Suite", suiteConfig, reporterConfig)
+}

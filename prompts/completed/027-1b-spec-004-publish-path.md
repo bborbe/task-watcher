@@ -1,8 +1,12 @@
 ---
-status: approved
+status: completed
 spec: [004-retire-bespoke-notifier]
+execution_id: task-watcher-exec-027-1b-spec-004-publish-path
+dark-factory-version: dev
 created: "2026-09-13T20:54:32Z"
 queued: "2026-09-13T21:42:20Z"
+started: "2026-09-13T21:47:08Z"
+completed: "2026-09-13T21:52:29Z"
 ---
 
 # Retire the bespoke notifier 1b: publish matched task events into the shared notification core

@@ -3,6 +3,10 @@
 All notable changes to this project will be documented in this file.
 
 
+## v0.22.0
+
+- feat: Publish matched task events into the shared notification core as `agent-escalation` commands with a nil target, sent through the CQRS Kafka command sender from `pkg/publish`; the message names the task, status, phase and assignee and links back to the note, the four source fields ride along as metadata, and duplicate suppression is one per-watcher window keyed on task+phase, measured on an injectable clock and consumed by the attempt itself
+
 ## v0.21.0
 
 - feat: Make watcher entries filter-only and move the publish destination to the `KAFKA_BROKERS`/`TOPIC_PREFIX` environment variables, with fail-fast startup naming the missing variable and the effective topic prefix logged at INFO; a config still carrying `type`/`url`/`token`/`chat_id` now refuses to load

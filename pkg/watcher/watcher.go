@@ -13,7 +13,7 @@ import (
 	"github.com/bborbe/vault-cli/pkg/storage"
 
 	"github.com/bborbe/task-watcher/pkg/config"
-	"github.com/bborbe/task-watcher/pkg/notify"
+	"github.com/bborbe/task-watcher/pkg/publish"
 )
 
 // taskReader is a narrow interface for reading a single task by ID.
@@ -21,16 +21,16 @@ type taskReader interface {
 	ReadTask(ctx context.Context, vaultPath string, taskID domain.TaskID) (*domain.Task, error)
 }
 
-// watcherEntry pairs per-watcher filter criteria with a notifier.
+// watcherEntry pairs per-watcher filter criteria with a publisher.
 type watcherEntry struct {
-	name     string
-	assignee string
-	statuses []string
-	phases   []string
-	notifier notify.Notifier
+	name      string
+	assignee  string
+	statuses  []string
+	phases    []string
+	publisher publish.Publisher
 }
 
-// Watcher watches the vault tasks directory and notifies on matching task changes.
+// Watcher watches the vault tasks directory and publishes on matching task changes.
 //
 //counterfeiter:generate -o ../../mocks/watcher.go --fake-name FakeWatcher . Watcher
 type Watcher interface {
@@ -39,14 +39,16 @@ type Watcher interface {
 
 // NewWatcher returns a Watcher that watches all configured vaults and fans out
 // matching task events to all configured watcher entries.
-func NewWatcher(cfg config.Config, notifiers []notify.Notifier) Watcher {
+func NewWatcher(cfg config.Config, publishers []publish.Publisher) Watcher {
 	vaultPaths := make(map[string]string, len(cfg.Vaults))
 	taskStorages := make(map[string]taskReader, len(cfg.Vaults))
+	tasksDirs := make(map[string]string, len(cfg.Vaults))
 	targets := make([]ops.WatchTarget, 0, len(cfg.Vaults))
 
 	for _, v := range cfg.Vaults {
 		vaultPaths[v.Name] = v.Path
 		taskStorages[v.Name] = storage.NewStorage(&storage.Config{TasksDir: v.TasksDir})
+		tasksDirs[v.Name] = v.TasksDir
 		targets = append(targets, ops.WatchTarget{
 			VaultPath: v.Path,
 			VaultName: v.Name,
@@ -57,11 +59,11 @@ func NewWatcher(cfg config.Config, notifiers []notify.Notifier) Watcher {
 	entries := make([]watcherEntry, len(cfg.Watchers))
 	for i, w := range cfg.Watchers {
 		entries[i] = watcherEntry{
-			name:     w.Name,
-			assignee: w.Assignee,
-			statuses: w.Statuses,
-			phases:   w.Phases,
-			notifier: notifiers[i],
+			name:      w.Name,
+			assignee:  w.Assignee,
+			statuses:  w.Statuses,
+			phases:    w.Phases,
+			publisher: publishers[i],
 		}
 	}
 
@@ -70,6 +72,7 @@ func NewWatcher(cfg config.Config, notifiers []notify.Notifier) Watcher {
 		watchOp:      ops.NewWatchOperation(),
 		vaultPaths:   vaultPaths,
 		taskStorages: taskStorages,
+		tasksDirs:    tasksDirs,
 		targets:      targets,
 	}
 }
@@ -79,6 +82,7 @@ type watcher struct {
 	watchOp      ops.WatchOperation
 	vaultPaths   map[string]string
 	taskStorages map[string]taskReader
+	tasksDirs    map[string]string
 	targets      []ops.WatchTarget
 }
 
@@ -112,8 +116,11 @@ func (w *watcher) handleEvent(ctx context.Context, event ops.WatchEvent) error {
 		return nil
 	}
 
-	notification := notify.Notification{
+	taskEvent := publish.TaskEvent{
+		Vault:    event.Vault,
+		TasksDir: w.tasksDirs[event.Vault],
 		TaskName: task.Name,
+		Status:   task.Status().String(),
 		Phase:    task.Phase().String(),
 		Assignee: task.Assignee(),
 	}
@@ -128,8 +135,8 @@ func (w *watcher) handleEvent(ctx context.Context, event ops.WatchEvent) error {
 		if len(entry.phases) > 0 && !containsString(entry.phases, task.Phase().String()) {
 			continue
 		}
-		if err := entry.notifier.Notify(ctx, notification); err != nil {
-			slog.Error("notify failed",
+		if err := entry.publisher.Publish(ctx, taskEvent); err != nil {
+			slog.Error("publish failed",
 				"watcher", entry.name,
 				"task", task.Name,
 				"phase", task.Phase().String(),

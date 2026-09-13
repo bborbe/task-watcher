@@ -14,6 +14,8 @@ import (
 	"time"
 
 	"github.com/bborbe/errors"
+	"github.com/bborbe/kafka"
+	libtime "github.com/bborbe/time"
 	"github.com/spf13/cobra"
 
 	"github.com/bborbe/task-watcher/pkg/config"
@@ -68,12 +70,30 @@ Configuration: reads ~/.config/task-watcher/config.yaml (XDG), falling back to ~
 				return fmt.Errorf("load config: %w", err)
 			}
 
-			if err := logStartup(ctx, cfg); err != nil {
+			destination, err := logStartup(ctx, cfg)
+			if err != nil {
 				return err
 			}
 
-			notifiers := factory.CreateNotifiers(cfg)
-			w := factory.CreateWatcher(cfg, notifiers)
+			syncProducer, err := newSyncProducer(ctx, destination)
+			if err != nil {
+				return err
+			}
+			defer func() {
+				if closeErr := syncProducer.Close(); closeErr != nil {
+					slog.Warn("close sync producer", "error", closeErr)
+				}
+			}()
+
+			currentDateTime := libtime.NewCurrentDateTime()
+			sender := factory.CreateNotificationSender(ctx, syncProducer, destination.TopicPrefix)
+			publishers := factory.CreatePublishers(
+				cfg,
+				sender,
+				destination.TopicPrefix,
+				currentDateTime,
+			)
+			w := factory.CreateWatcher(cfg, publishers)
 
 			errCh := make(chan error, 1)
 			go func() {
@@ -107,13 +127,30 @@ Configuration: reads ~/.config/task-watcher/config.yaml (XDG), falling back to ~
 	return rootCmd.ExecuteContext(ctx)
 }
 
+// newSyncProducer creates the Kafka sync producer that publishes notification
+// commands onto the shared core's command topic.
+func newSyncProducer(
+	ctx context.Context,
+	destination config.Destination,
+) (kafka.SyncProducer, error) {
+	syncProducer, err := kafka.NewSyncProducerWithName(
+		ctx,
+		destination.KafkaBrokers,
+		"task-watcher",
+	)
+	if err != nil {
+		return nil, errors.Wrapf(ctx, err, "create sync producer")
+	}
+	return syncProducer, nil
+}
+
 // logStartup loads the publish destination from the environment and logs the
 // effective startup configuration. It returns an error when the destination is
 // not configured, so a missing variable surfaces as a non-zero exit naming it.
-func logStartup(ctx context.Context, cfg config.Config) error {
+func logStartup(ctx context.Context, cfg config.Config) (config.Destination, error) {
 	destination, err := config.LoadDestinationFromEnv(ctx)
 	if err != nil {
-		return errors.Wrapf(ctx, err, "load destination")
+		return config.Destination{}, errors.Wrapf(ctx, err, "load destination")
 	}
 
 	slog.Info("task-watcher starting", "version", version)
@@ -142,5 +179,5 @@ func logStartup(ctx context.Context, cfg config.Config) error {
 			w.DedupTTL,
 		)
 	}
-	return nil
+	return destination, nil
 }
