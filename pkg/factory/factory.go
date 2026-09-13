@@ -5,8 +5,6 @@
 package factory
 
 import (
-	"net/http"
-
 	"github.com/bborbe/task-watcher/pkg/config"
 	"github.com/bborbe/task-watcher/pkg/notify"
 	"github.com/bborbe/task-watcher/pkg/watcher"
@@ -20,10 +18,15 @@ func CreateConfigLoader(filePath string) config.Loader {
 
 // CreateNotifiers builds one Notifier per WatcherConfig entry in the order they appear.
 // Pure composition: no network calls at construction time.
+//
+// CreateNotifiers is an interim placeholder: watcher entries are filter-only, so the
+// bespoke path can no longer be selected per type. Delivery is log-only until the shared
+// publish path lands in the next prompt; this constructor and pkg/notify are removed by
+// the gated deletion prompt of spec 004.
 func CreateNotifiers(cfg config.Config) []notify.Notifier {
 	notifiers := make([]notify.Notifier, len(cfg.Watchers))
 	for i, w := range cfg.Watchers {
-		notifiers[i] = createNotifierForWatcher(w)
+		notifiers[i] = notify.NewLogNotifier(w.DedupTTL)
 	}
 	return notifiers
 }
@@ -33,19 +36,4 @@ func CreateNotifiers(cfg config.Config) []notify.Notifier {
 // Pure composition: no filesystem access at construction time.
 func CreateWatcher(cfg config.Config, notifiers []notify.Notifier) watcher.Watcher {
 	return watcher.NewWatcher(cfg, notifiers)
-}
-
-// createNotifierForWatcher instantiates the correct Notifier implementation based on watcher type.
-func createNotifierForWatcher(w config.WatcherConfig) notify.Notifier {
-	switch w.Type {
-	case "openclaw-wake":
-		return notify.NewOpenClawNotifier(w.URL, w.Token, http.DefaultClient, w.DedupTTL)
-	case "telegram":
-		return notify.NewTelegramNotifier(w.Token, w.ChatID, http.DefaultClient, w.DedupTTL)
-	case "log":
-		return notify.NewLogNotifier(w.DedupTTL)
-	default:
-		// Should never reach here — validated in config.Load
-		panic("unknown watcher type: " + w.Type)
-	}
 }

@@ -14,7 +14,42 @@ import (
 	. "github.com/onsi/gomega"
 
 	"github.com/bborbe/task-watcher/pkg/cli"
+	"github.com/bborbe/task-watcher/pkg/config"
 )
+
+func writeTempConfig(content string) string {
+	f, err := os.CreateTemp("", "cli-config-*.yaml")
+	Expect(err).NotTo(HaveOccurred())
+	_, err = f.WriteString(content)
+	Expect(err).NotTo(HaveOccurred())
+	Expect(f.Close()).To(Succeed())
+	return f.Name()
+}
+
+const validConfig = `
+vaults:
+  personal:
+    path: /tmp/vault
+    tasks_dir: Tasks
+watchers:
+  - name: review
+    assignee: alice
+    phases: [human_review]
+`
+
+// unsetenv removes name for the duration of the current spec and restores its
+// previous state afterwards. GinkgoT().Setenv cannot express "unset".
+func unsetenv(name string) {
+	original, existed := os.LookupEnv(name)
+	Expect(os.Unsetenv(name)).To(Succeed())
+	DeferCleanup(func() {
+		if existed {
+			Expect(os.Setenv(name, original)).To(Succeed())
+			return
+		}
+		Expect(os.Unsetenv(name)).To(Succeed())
+	})
+}
 
 var _ = Describe("Run", func() {
 	var ctx context.Context
@@ -26,6 +61,28 @@ var _ = Describe("Run", func() {
 	It("returns error when config file does not exist", func() {
 		err := cli.Run(ctx, []string{"--config", "/nonexistent/path/config.yaml"})
 		Expect(err).To(HaveOccurred())
+	})
+
+	It("returns error naming KAFKA_BROKERS when it is unset", func() {
+		path := writeTempConfig(validConfig)
+		DeferCleanup(os.Remove, path)
+		unsetenv(config.EnvKafkaBrokers)
+		GinkgoT().Setenv(config.EnvTopicPrefix, "develop")
+
+		err := cli.Run(ctx, []string{"--config", path})
+		Expect(err).To(HaveOccurred())
+		Expect(err.Error()).To(ContainSubstring(config.EnvKafkaBrokers))
+	})
+
+	It("returns error naming TOPIC_PREFIX when it is empty", func() {
+		path := writeTempConfig(validConfig)
+		DeferCleanup(os.Remove, path)
+		GinkgoT().Setenv(config.EnvKafkaBrokers, "127.0.0.1:9092")
+		GinkgoT().Setenv(config.EnvTopicPrefix, "")
+
+		err := cli.Run(ctx, []string{"--config", path})
+		Expect(err).To(HaveOccurred())
+		Expect(err.Error()).To(ContainSubstring(config.EnvTopicPrefix))
 	})
 
 	It("--help output contains --config and --verbose but not alsologtostderr", func() {

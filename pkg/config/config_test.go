@@ -209,7 +209,7 @@ vaults:
     path: /tmp/vault
     tasks_dir: Tasks
 watchers:
-  - type: log
+  - assignee: alice
 `)
 			DeferCleanup(os.Remove, path)
 
@@ -218,127 +218,76 @@ watchers:
 			Expect(err.Error()).To(ContainSubstring("missing required field: name"))
 		})
 
-		It("returns error when watcher is missing type", func() {
+		It("returns error when watcher still carries a type field", func() {
 			path := writeTempConfig(`
 vaults:
   personal:
     path: /tmp/vault
     tasks_dir: Tasks
 watchers:
-  - name: my-watcher
+  - name: stale
+    type: log
 `)
 			DeferCleanup(os.Remove, path)
 
 			_, err := config.NewLoader(path).Load(ctx)
 			Expect(err).To(HaveOccurred())
-			Expect(err.Error()).To(ContainSubstring("missing required field: type"))
+			Expect(err.Error()).To(ContainSubstring("stale"))
+			Expect(err.Error()).To(ContainSubstring("type"))
 		})
 
-		It("returns error when watcher has unknown type", func() {
+		It("returns error when watcher still carries a url field", func() {
 			path := writeTempConfig(`
 vaults:
   personal:
     path: /tmp/vault
     tasks_dir: Tasks
 watchers:
-  - name: my-watcher
-    type: slack
-`)
-			DeferCleanup(os.Remove, path)
-
-			_, err := config.NewLoader(path).Load(ctx)
-			Expect(err).To(HaveOccurred())
-			Expect(err.Error()).To(ContainSubstring("unknown type"))
-		})
-
-		It("returns error when openclaw-wake watcher is missing url", func() {
-			path := writeTempConfig(`
-vaults:
-  personal:
-    path: /tmp/vault
-    tasks_dir: Tasks
-watchers:
-  - name: wake
-    type: openclaw-wake
-    token: secret
-`)
-			DeferCleanup(os.Remove, path)
-
-			_, err := config.NewLoader(path).Load(ctx)
-			Expect(err).To(HaveOccurred())
-			Expect(err.Error()).To(ContainSubstring("url"))
-		})
-
-		It("returns error when openclaw-wake watcher is missing token", func() {
-			path := writeTempConfig(`
-vaults:
-  personal:
-    path: /tmp/vault
-    tasks_dir: Tasks
-watchers:
-  - name: wake
-    type: openclaw-wake
+  - name: stale
     url: http://127.0.0.1:18789/hooks/wake
 `)
 			DeferCleanup(os.Remove, path)
 
 			_, err := config.NewLoader(path).Load(ctx)
 			Expect(err).To(HaveOccurred())
-			Expect(err.Error()).To(ContainSubstring("token"))
+			Expect(err.Error()).To(ContainSubstring("stale"))
+			Expect(err.Error()).To(ContainSubstring("url"))
 		})
 
-		It("returns error when telegram watcher is missing token", func() {
+		It("returns error when watcher still carries a token field", func() {
 			path := writeTempConfig(`
 vaults:
   personal:
     path: /tmp/vault
     tasks_dir: Tasks
 watchers:
-  - name: tg
-    type: telegram
+  - name: stale
+    token: "secret"
+`)
+			DeferCleanup(os.Remove, path)
+
+			_, err := config.NewLoader(path).Load(ctx)
+			Expect(err).To(HaveOccurred())
+			Expect(err.Error()).To(ContainSubstring("stale"))
+			Expect(err.Error()).To(ContainSubstring("token"))
+		})
+
+		It("returns error when watcher still carries a chat_id field", func() {
+			path := writeTempConfig(`
+vaults:
+  personal:
+    path: /tmp/vault
+    tasks_dir: Tasks
+watchers:
+  - name: stale
     chat_id: "456"
 `)
 			DeferCleanup(os.Remove, path)
 
 			_, err := config.NewLoader(path).Load(ctx)
 			Expect(err).To(HaveOccurred())
-			Expect(err.Error()).To(ContainSubstring("token"))
-		})
-
-		It("returns error when telegram watcher is missing chat_id", func() {
-			path := writeTempConfig(`
-vaults:
-  personal:
-    path: /tmp/vault
-    tasks_dir: Tasks
-watchers:
-  - name: tg
-    type: telegram
-    token: "bot123:ABC"
-`)
-			DeferCleanup(os.Remove, path)
-
-			_, err := config.NewLoader(path).Load(ctx)
-			Expect(err).To(HaveOccurred())
+			Expect(err.Error()).To(ContainSubstring("stale"))
 			Expect(err.Error()).To(ContainSubstring("chat_id"))
-		})
-
-		It("accepts log type with no extra fields", func() {
-			path := writeTempConfig(`
-vaults:
-  personal:
-    path: /tmp/vault
-    tasks_dir: Tasks
-watchers:
-  - name: debug
-    type: log
-`)
-			DeferCleanup(os.Remove, path)
-
-			cfg, err := config.NewLoader(path).Load(ctx)
-			Expect(err).NotTo(HaveOccurred())
-			Expect(cfg.Watchers).To(HaveLen(1))
-			Expect(cfg.Watchers[0].Type).To(Equal("log"))
 		})
 
 		It("parses dedup_ttl as 30 minutes", func() {
@@ -349,7 +298,6 @@ vaults:
     tasks_dir: Tasks
 watchers:
   - name: debug
-    type: log
     dedup_ttl: "30m"
 `)
 			DeferCleanup(os.Remove, path)
@@ -367,7 +315,6 @@ vaults:
     tasks_dir: Tasks
 watchers:
   - name: debug
-    type: log
 `)
 			DeferCleanup(os.Remove, path)
 
@@ -384,7 +331,6 @@ vaults:
     tasks_dir: Tasks
 watchers:
   - name: debug
-    type: log
     dedup_ttl: "banana"
 `)
 			DeferCleanup(os.Remove, path)
@@ -408,25 +354,18 @@ vaults:
 
 watchers:
   - name: wake-tradingclaw
-    type: openclaw-wake
     assignee: TradingClaw
     statuses: [in_progress]
     phases: [planning, in_progress, ai_review]
     dedup_ttl: "5m"
-    url: http://127.0.0.1:18789/hooks/wake
-    token: "secret"
 
   - name: notify-review
-    type: telegram
     assignee: TradingClaw
     statuses: [in_progress]
     phases: [human_review]
     dedup_ttl: "30m"
-    token: "bot123:ABC"
-    chat_id: "456"
 
   - name: debug
-    type: log
     assignee: TradingClaw
     statuses: [in_progress]
     phases: [planning]
@@ -449,24 +388,22 @@ watchers:
 
 			wake := cfg.Watchers[0]
 			Expect(wake.Name).To(Equal("wake-tradingclaw"))
-			Expect(wake.Type).To(Equal("openclaw-wake"))
 			Expect(wake.Assignee).To(Equal("TradingClaw"))
 			Expect(wake.Statuses).To(ConsistOf("in_progress"))
 			Expect(wake.Phases).To(ConsistOf("planning", "in_progress", "ai_review"))
 			Expect(wake.DedupTTL).To(Equal(5 * time.Minute))
-			Expect(wake.URL).To(Equal("http://127.0.0.1:18789/hooks/wake"))
-			Expect(wake.Token).To(Equal("secret"))
 
-			tg := cfg.Watchers[1]
-			Expect(tg.Name).To(Equal("notify-review"))
-			Expect(tg.Type).To(Equal("telegram"))
-			Expect(tg.Token).To(Equal("bot123:ABC"))
-			Expect(tg.ChatID).To(Equal("456"))
-			Expect(tg.DedupTTL).To(Equal(30 * time.Minute))
+			review := cfg.Watchers[1]
+			Expect(review.Name).To(Equal("notify-review"))
+			Expect(review.Assignee).To(Equal("TradingClaw"))
+			Expect(review.Phases).To(ConsistOf("human_review"))
+			Expect(review.DedupTTL).To(Equal(30 * time.Minute))
 
-			log := cfg.Watchers[2]
-			Expect(log.Name).To(Equal("debug"))
-			Expect(log.Type).To(Equal("log"))
+			debug := cfg.Watchers[2]
+			Expect(debug.Name).To(Equal("debug"))
+			Expect(debug.Assignee).To(Equal("TradingClaw"))
+			Expect(debug.Phases).To(ConsistOf("planning"))
+			Expect(debug.DedupTTL).To(Equal(5 * time.Minute))
 		})
 	})
 

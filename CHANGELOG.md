@@ -3,6 +3,10 @@
 All notable changes to this project will be documented in this file.
 
 
+## v0.21.0
+
+- feat: Make watcher entries filter-only and move the publish destination to the `KAFKA_BROKERS`/`TOPIC_PREFIX` environment variables, with fail-fast startup naming the missing variable and the effective topic prefix logged at INFO; a config still carrying `type`/`url`/`token`/`chat_id` now refuses to load
+
 ## v0.20.6
 
 - chore: update Go to 1.27.1 and github.com/bborbe/errors to v1.6.1, github.com/bborbe/time to v1.27.14, github.com/bborbe/vault-cli to v0.126.3

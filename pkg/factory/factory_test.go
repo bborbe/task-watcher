@@ -33,10 +33,10 @@ var _ = Describe("Factory", func() {
 			Expect(result).To(HaveLen(0))
 		})
 
-		It("returns slice of length 1 with non-nil element for openclaw-wake watcher", func() {
+		It("returns slice of length 1 with non-nil element for one filter entry", func() {
 			cfg := config.Config{
 				Watchers: []config.WatcherConfig{
-					{Name: "w1", Type: "openclaw-wake", URL: "http://example.com", Token: "tok"},
+					{Name: "w1", Assignee: "alice", Phases: []string{"human_review"}},
 				},
 			}
 			result := factory.CreateNotifiers(cfg)
@@ -44,26 +44,19 @@ var _ = Describe("Factory", func() {
 			Expect(result[0]).NotTo(BeNil())
 		})
 
-		It("returns slice of length 1 with non-nil element for telegram watcher", func() {
+		It("returns one non-nil element per filter entry, in order", func() {
 			cfg := config.Config{
 				Watchers: []config.WatcherConfig{
-					{Name: "w1", Type: "telegram", Token: "tok", ChatID: "123"},
+					{Name: "w1", Assignee: "alice"},
+					{Name: "w2", Statuses: []string{"in_progress"}},
+					{Name: "w3"},
 				},
 			}
 			result := factory.CreateNotifiers(cfg)
-			Expect(result).To(HaveLen(1))
-			Expect(result[0]).NotTo(BeNil())
-		})
-
-		It("returns slice of length 1 with non-nil element for log watcher", func() {
-			cfg := config.Config{
-				Watchers: []config.WatcherConfig{
-					{Name: "w1", Type: "log"},
-				},
+			Expect(result).To(HaveLen(3))
+			for _, n := range result {
+				Expect(n).NotTo(BeNil())
 			}
-			result := factory.CreateNotifiers(cfg)
-			Expect(result).To(HaveLen(1))
-			Expect(result[0]).NotTo(BeNil())
 		})
 	})
 
@@ -74,7 +67,7 @@ var _ = Describe("Factory", func() {
 					{Name: "testvault", Path: "/vault", TasksDir: "24 Tasks"},
 				},
 				Watchers: []config.WatcherConfig{
-					{Name: "test", Type: "log"},
+					{Name: "test"},
 				},
 			}
 			notifiers := []notify.Notifier{factory.CreateNotifiers(cfg)[0]}

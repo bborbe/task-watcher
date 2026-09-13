@@ -24,18 +24,14 @@ type VaultConfig struct {
 }
 
 // WatcherConfig holds the configuration for a single watcher entry.
+// An entry is a pure filter: it selects which task events match, and no longer
+// selects a delivery channel.
 type WatcherConfig struct {
 	Name     string
-	Type     string
 	Assignee string
 	Statuses []string
 	Phases   []string
 	DedupTTL time.Duration
-	// openclaw-wake fields
-	URL   string
-	Token string
-	// telegram fields
-	ChatID string
 }
 
 // Config holds the parsed task-watcher configuration.
@@ -67,14 +63,15 @@ type rawVaultEntry struct {
 
 type rawWatcherEntry struct {
 	Name     string   `yaml:"name"`
-	Type     string   `yaml:"type"`
 	Assignee string   `yaml:"assignee"`
 	Statuses []string `yaml:"statuses"`
 	Phases   []string `yaml:"phases"`
 	DedupTTL string   `yaml:"dedup_ttl"`
-	URL      string   `yaml:"url"`
-	Token    string   `yaml:"token"`
-	ChatID   string   `yaml:"chat_id"`
+	// Removed channel fields — present only so a stale config fails loudly.
+	Type   string `yaml:"type"`
+	URL    string `yaml:"url"`
+	Token  string `yaml:"token"`
+	ChatID string `yaml:"chat_id"`
 }
 
 type rawConfig struct {
@@ -163,47 +160,29 @@ func expandHome(path string, homeDir *string) (string, error) {
 	return *homeDir + path[1:], nil
 }
 
-func validateWatcherType(ctx context.Context, rw rawWatcherEntry) error {
-	switch rw.Type {
-	case "openclaw-wake":
-		if rw.URL == "" {
+// validateNoRemovedChannelFields rejects a watcher entry that still carries one
+// of the removed channel fields, so a stale config can never start and silently
+// deliver nothing. The check order is fixed (type, url, token, chat_id) to keep
+// the reported error deterministic.
+func validateNoRemovedChannelFields(ctx context.Context, rw rawWatcherEntry) error {
+	removed := []struct {
+		field string
+		value string
+	}{
+		{"type", rw.Type},
+		{"url", rw.URL},
+		{"token", rw.Token},
+		{"chat_id", rw.ChatID},
+	}
+	for _, r := range removed {
+		if r.value != "" {
 			return errors.Errorf(
 				ctx,
-				"watcher %q (openclaw-wake): missing required field: url",
+				"watcher %q: field %q was removed — a watcher entry is a pure filter and no longer selects a delivery channel; remove it from the watcher entry",
 				rw.Name,
+				r.field,
 			)
 		}
-		if rw.Token == "" {
-			return errors.Errorf(
-				ctx,
-				"watcher %q (openclaw-wake): missing required field: token",
-				rw.Name,
-			)
-		}
-	case "telegram":
-		if rw.Token == "" {
-			return errors.Errorf(
-				ctx,
-				"watcher %q (telegram): missing required field: token",
-				rw.Name,
-			)
-		}
-		if rw.ChatID == "" {
-			return errors.Errorf(
-				ctx,
-				"watcher %q (telegram): missing required field: chat_id",
-				rw.Name,
-			)
-		}
-	case "log":
-		// no extra fields required
-	default:
-		return errors.Errorf(
-			ctx,
-			"watcher %q: unknown type %q (must be openclaw-wake, telegram, or log)",
-			rw.Name,
-			rw.Type,
-		)
 	}
 	return nil
 }
@@ -225,10 +204,7 @@ func parseWatchers(ctx context.Context, rawList []rawWatcherEntry) ([]WatcherCon
 		if rw.Name == "" {
 			return nil, errors.Errorf(ctx, "watcher[%d]: missing required field: name", i)
 		}
-		if rw.Type == "" {
-			return nil, errors.Errorf(ctx, "watcher %q: missing required field: type", rw.Name)
-		}
-		if err := validateWatcherType(ctx, rw); err != nil {
+		if err := validateNoRemovedChannelFields(ctx, rw); err != nil {
 			return nil, err
 		}
 		dedupTTL, err := parseDedupTTL(ctx, rw)
@@ -238,14 +214,10 @@ func parseWatchers(ctx context.Context, rawList []rawWatcherEntry) ([]WatcherCon
 
 		watchers = append(watchers, WatcherConfig{
 			Name:     rw.Name,
-			Type:     rw.Type,
 			Assignee: rw.Assignee,
 			Statuses: rw.Statuses,
 			Phases:   rw.Phases,
 			DedupTTL: dedupTTL,
-			URL:      rw.URL,
-			Token:    rw.Token,
-			ChatID:   rw.ChatID,
 		})
 	}
 	return watchers, nil

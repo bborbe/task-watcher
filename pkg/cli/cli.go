@@ -13,8 +13,10 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/bborbe/errors"
 	"github.com/spf13/cobra"
 
+	"github.com/bborbe/task-watcher/pkg/config"
 	"github.com/bborbe/task-watcher/pkg/factory"
 )
 
@@ -66,20 +68,8 @@ Configuration: reads ~/.config/task-watcher/config.yaml (XDG), falling back to ~
 				return fmt.Errorf("load config: %w", err)
 			}
 
-			slog.Info("task-watcher starting", "version", version)
-			for _, v := range cfg.Vaults {
-				slog.Info("watching vault", "name", v.Name, "path", v.Path, "tasksDir", v.TasksDir)
-			}
-			for _, w := range cfg.Watchers {
-				slog.Info(
-					"configured watcher",
-					"name",
-					w.Name,
-					"type",
-					w.Type,
-					"assignee",
-					w.Assignee,
-				)
+			if err := logStartup(ctx, cfg); err != nil {
+				return err
 			}
 
 			notifiers := factory.CreateNotifiers(cfg)
@@ -115,4 +105,42 @@ Configuration: reads ~/.config/task-watcher/config.yaml (XDG), falling back to ~
 
 	rootCmd.SetArgs(args)
 	return rootCmd.ExecuteContext(ctx)
+}
+
+// logStartup loads the publish destination from the environment and logs the
+// effective startup configuration. It returns an error when the destination is
+// not configured, so a missing variable surfaces as a non-zero exit naming it.
+func logStartup(ctx context.Context, cfg config.Config) error {
+	destination, err := config.LoadDestinationFromEnv(ctx)
+	if err != nil {
+		return errors.Wrapf(ctx, err, "load destination")
+	}
+
+	slog.Info("task-watcher starting", "version", version)
+	slog.Info(
+		"publish destination",
+		"kafka_brokers",
+		destination.KafkaBrokers.String(),
+		"topic_prefix",
+		destination.TopicPrefix.String(),
+	)
+	for _, v := range cfg.Vaults {
+		slog.Info("watching vault", "name", v.Name, "path", v.Path, "tasksDir", v.TasksDir)
+	}
+	for _, w := range cfg.Watchers {
+		slog.Info(
+			"configured watcher",
+			"name",
+			w.Name,
+			"assignee",
+			w.Assignee,
+			"statuses",
+			w.Statuses,
+			"phases",
+			w.Phases,
+			"dedupTTL",
+			w.DedupTTL,
+		)
+	}
+	return nil
 }

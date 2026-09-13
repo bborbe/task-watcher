@@ -56,7 +56,7 @@ var _ = Describe("Watcher", func() {
 				{Name: "testvault", Path: vaultDir, TasksDir: "24 Tasks"},
 			},
 			Watchers: []config.WatcherConfig{
-				{Name: "test", Type: "log"},
+				{Name: "test"},
 			},
 		}
 		fakeNotifier = &mocknotify.FakeNotifier{}
@@ -142,7 +142,7 @@ var _ = Describe("Watcher multi-vault", func() {
 				{Name: "vault2", Path: vault2Dir, TasksDir: "Tasks"},
 			},
 			Watchers: []config.WatcherConfig{
-				{Name: "test", Type: "log"},
+				{Name: "test"},
 			},
 		}
 		fakeNotifier = &mocknotify.FakeNotifier{}
@@ -234,8 +234,8 @@ var _ = Describe("Watcher fan-out", func() {
 				{Name: "v", Path: vaultDir, TasksDir: "Tasks"},
 			},
 			Watchers: []config.WatcherConfig{
-				{Name: "w1", Type: "log"},
-				{Name: "w2", Type: "log"},
+				{Name: "w1"},
+				{Name: "w2"},
 			},
 		}
 		startWatcher(cfg, []notify.Notifier{fake1, fake2})
@@ -253,8 +253,8 @@ var _ = Describe("Watcher fan-out", func() {
 				{Name: "v", Path: vaultDir, TasksDir: "Tasks"},
 			},
 			Watchers: []config.WatcherConfig{
-				{Name: "w1", Type: "log", Assignee: "Alice"},
-				{Name: "w2", Type: "log", Assignee: "Bob"},
+				{Name: "w1", Assignee: "Alice"},
+				{Name: "w2", Assignee: "Bob"},
 			},
 		}
 		startWatcher(cfg, []notify.Notifier{fake1, fake2})
@@ -277,8 +277,8 @@ var _ = Describe("Watcher fan-out", func() {
 				{Name: "v", Path: vaultDir, TasksDir: "Tasks"},
 			},
 			Watchers: []config.WatcherConfig{
-				{Name: "w1", Type: "log"},
-				{Name: "w2", Type: "log"},
+				{Name: "w1"},
+				{Name: "w2"},
 			},
 		}
 		startWatcher(cfg, []notify.Notifier{fake1, fake2})
@@ -296,8 +296,8 @@ var _ = Describe("Watcher fan-out", func() {
 				{Name: "v", Path: vaultDir, TasksDir: "Tasks"},
 			},
 			Watchers: []config.WatcherConfig{
-				{Name: "w1", Type: "log", Assignee: "WrongUser"},
-				{Name: "w2", Type: "log"},
+				{Name: "w1", Assignee: "WrongUser"},
+				{Name: "w2"},
 			},
 		}
 		startWatcher(cfg, []notify.Notifier{fake1, fake2})
@@ -319,8 +319,8 @@ var _ = Describe("Watcher fan-out", func() {
 				{Name: "v", Path: vaultDir, TasksDir: "Tasks"},
 			},
 			Watchers: []config.WatcherConfig{
-				{Name: "w1", Type: "log", Phases: []string{"execution"}},
-				{Name: "w2", Type: "log"},
+				{Name: "w1", Phases: []string{"execution"}},
+				{Name: "w2"},
 			},
 		}
 		startWatcher(cfg, []notify.Notifier{fake1, fake2})
