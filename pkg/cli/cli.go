@@ -53,10 +53,11 @@ func Run(ctx context.Context, args []string) error {
 
 	rootCmd := &cobra.Command{
 		Use:   "task-watcher",
-		Short: "Watches vault task files and notifies agents via webhook",
-		Long: `Watches vault task files and notifies agents via webhook.
+		Short: "Watches vault task files and publishes notifications into the shared delivery core",
+		Long: `Watches vault task files and publishes matching task events into the shared delivery core.
 
-Configuration: reads ~/.config/task-watcher/config.yaml (XDG), falling back to ~/.task-watcher/config.yaml (legacy). Override with --config.`,
+Configuration: reads ~/.config/task-watcher/config.yaml (XDG), falling back to ~/.task-watcher/config.yaml (legacy). Override with --config.
+Publish destination: KAFKA_BROKERS (comma-separated) and TOPIC_PREFIX are required; the process refuses to start when either is unset.`,
 		Version:      version,
 		SilenceUsage: true,
 		RunE: func(cmd *cobra.Command, _ []string) error {

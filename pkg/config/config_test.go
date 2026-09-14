@@ -244,7 +244,7 @@ vaults:
     tasks_dir: Tasks
 watchers:
   - name: stale
-    url: http://127.0.0.1:18789/hooks/wake
+    url: http://127.0.0.1:9999/endpoint
 `)
 			DeferCleanup(os.Remove, path)
 

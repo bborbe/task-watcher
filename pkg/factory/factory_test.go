@@ -30,40 +30,6 @@ var _ = Describe("Factory", func() {
 		})
 	})
 
-	Describe("CreateNotifiers", func() {
-		It("returns empty slice when no watchers configured", func() {
-			cfg := config.Config{}
-			result := factory.CreateNotifiers(cfg)
-			Expect(result).To(HaveLen(0))
-		})
-
-		It("returns slice of length 1 with non-nil element for one filter entry", func() {
-			cfg := config.Config{
-				Watchers: []config.WatcherConfig{
-					{Name: "w1", Assignee: "alice", Phases: []string{"human_review"}},
-				},
-			}
-			result := factory.CreateNotifiers(cfg)
-			Expect(result).To(HaveLen(1))
-			Expect(result[0]).NotTo(BeNil())
-		})
-
-		It("returns one non-nil element per filter entry, in order", func() {
-			cfg := config.Config{
-				Watchers: []config.WatcherConfig{
-					{Name: "w1", Assignee: "alice"},
-					{Name: "w2", Statuses: []string{"in_progress"}},
-					{Name: "w3"},
-				},
-			}
-			result := factory.CreateNotifiers(cfg)
-			Expect(result).To(HaveLen(3))
-			for _, n := range result {
-				Expect(n).NotTo(BeNil())
-			}
-		})
-	})
-
 	Describe("CreatePublishers", func() {
 		var sender *mocks.NotificationPublishCommandSender
 

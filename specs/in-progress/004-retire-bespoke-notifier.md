@@ -1,8 +1,9 @@
 ---
-status: prompted
+status: verifying
 approved: "2026-09-13T19:52:46Z"
 generating: "2026-09-13T21:09:22Z"
 prompted: "2026-09-13T21:09:22Z"
+verifying: "2026-09-13T21:52:31Z"
 branch: dark-factory/retire-bespoke-notifier
 ---
 

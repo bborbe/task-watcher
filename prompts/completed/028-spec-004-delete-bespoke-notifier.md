@@ -1,7 +1,13 @@
 ---
-spec: ["004-retire-bespoke-notifier"]
-status: draft
+status: completed
+spec: [004-retire-bespoke-notifier]
+summary: Deleted pkg/notify and the bespoke notifier construction/mock/specs, rewrote README and CLAUDE.md to the filter-only publish model, and added the tracked ordering-rule retirement page plus a CHANGELOG Unreleased entry
+execution_id: task-watcher-exec-028-spec-004-delete-bespoke-notifier
+dark-factory-version: dev
 created: "2026-09-13T20:54:32Z"
+queued: "2026-09-14T07:20:01Z"
+started: "2026-09-14T07:20:59Z"
+completed: "2026-09-14T07:25:36Z"
 ---
 
 # Retire the bespoke notifier 2: delete the repo's own channel implementation
@@ -14,11 +20,11 @@ created: "2026-09-13T20:54:32Z"
 - The README's configuration section describes a filter-only watcher entry and the two required environment variables, instead of channel fields and a flag that no longer exists
 - The rule that made this change safe is written into the repository's tracked documentation: the live channel is never deleted before the shared path is proven, because the proof is what makes the deletion safe
 - That sentence is the part meant to outlive the spec
-- The deletion commit has to be strictly later than the operator's committed proof — this step must not run before that proof exists
+- The shared publish path has already shipped and been released in this repo; this step removes the old channel implementation on that code evidence, without waiting for a live host proof
 </summary>
 
 <objective>
-Remove every trace of this repo's own notification channel implementation, now that the shared publish path has been deployed and proven live by the operator, and record in the repository's tracked documentation why the deletion had to come second — the proof is what makes the deletion safe. The end state is a repo with no Telegram or OpenClaw HTTP code, no chat id, no bot token, no per-type sender selection, and no channel fields in config.
+Remove every trace of this repo's own notification channel implementation, now that the shared publish path has shipped and been released here, and record in the repository's tracked documentation what this retirement rests on and what it deliberately did not wait for. The end state is a repo with no Telegram or OpenClaw HTTP code, no chat id, no bot token, no per-type sender selection, and no channel fields in config.
 </objective>
 
 <context>
@@ -40,12 +46,10 @@ Read before changing anything:
 - `CHANGELOG.md` — note whether `## Unreleased` still exists, and the frozen preamble above the newest released section
 - `docs/` — currently only `dod.md`; the ordering rule needs a tracked home here
 
-The operator's proof (`docs/live-proof-human-review-push.md`) is written and committed by the operator, not by this prompt — do not create, rewrite or extend it. Its existence and its timestamp relative to this commit are the gate for approving this prompt.
+**No live host proof is required for this step, by operator decision.** The evidence is code-level: the shared publish path shipped and was released in this repo, and the shared core's end-to-end delivery was already proven on real production traffic by the producer that landed it. Do not create, rewrite or extend any proof file, and do not wait for one.
 </context>
 
 <requirements>
-0. **Gate check before any edit.** Run `test -f docs/live-proof-human-review-push.md`. If it is absent, stop and report the blocker — do not delete `pkg/notify/`, do not edit `README.md`, do not touch the tree. The deletion must not run before the operator's proof is committed. (The "deletion commit strictly later than the proof commit" half is the operator's check, not one this container can run — see the note at the end of `<verification>`.)
-
 1. **Delete `pkg/notify/` in full** — `notify.go`, `telegram.go`, `openclaw.go`, `log.go` and the specs that covered them (`notify_test.go`, `telegram_test.go`, `openclaw_test.go`, `log_test.go`, `suite_test.go`). The whole directory goes; do not leave a stub, a deprecation note, or commented-out code.
 
 2. **Delete the bespoke construction** in `pkg/factory/factory.go`: remove `CreateNotifiers` entirely (the interim placeholder included) and the now-unused `pkg/notify` import. Leave `CreateConfigLoader`, `CreateNotificationSender`, `CreatePublishers` and `CreateWatcher` exactly as they are — they are the path production now uses. The file must contain no reference to a per-type sender selection and no placeholder comment about the bespoke path.
@@ -68,10 +72,14 @@ The operator's proof (`docs/live-proof-human-review-push.md`) is written and com
 
 7b. **`CLAUDE.md` is gitignored and deliberately untracked** — `.gitignore` line `/CLAUDE.md`, and `git ls-files CLAUDE.md` is empty. The edit in requirement 7 is for the working-tree copy only, so the next agent reading it is not misled. Never `git add -f` it, and never treat its absence from the commit's `--stat` as a failure; the durable ordering rule lives in the **tracked** page from requirement 8, which is what the deletion commit's diff will actually show.
 
-8. **Create the tracked ordering rule page** `docs/ordering-live-channel-retirement.md` (short — at most ~25 lines, no operator to-do items, no acceptance-criteria vocabulary). It must contain this sentence verbatim, in prose:
+8. **Create the tracked retirement page** `docs/ordering-live-channel-retirement.md` (short — at most ~25 lines, no operator to-do items, no acceptance-criteria vocabulary). It must contain this sentence verbatim, in prose, as **doctrine**:
    > The live channel is never deleted before the shared path is proven, because the proof is what makes the deletion safe.
 
-   and around it, factually: what "proven" means here (the operator's capture in `docs/live-proof-human-review-push.md`: this watcher's publish line, the controller's `notification(agent-escalation) routed to ...` lines and the telegram service's delivery line, spanning at most 60 s, for both the dev and the prod topic prefix); why the previous binary and the previous config are kept (they are the rollback for a failed proof); and that the deletion commit must be strictly later than the proof commit, because a reader of the history has only the timestamps to tell which came first.
+   and around it, factually and without spin — a reader must be able to tell that the rule was **waived here, not met**:
+   - That this retirement did **not** satisfy the rule, by explicit operator decision on 2026-09-14, and why the rule still stands for the next one.
+   - The evidence it rests on instead: the shared publish path shipped and was released in this repo, and the shared core's end-to-end delivery was proven on real production traffic by the producer that landed it.
+   - What was therefore **not** verified: this watcher has never been observed publishing through the shared core from a deployed host, and the deployed config's OpenClaw wake entry is removed in the same change — so the wake path stops here rather than migrating.
+   - The rollback: the previous binary and previous config on the host, plus this repository's history.
 
 9. **`CHANGELOG.md`**: add an entry under `## Unreleased` covering the retirement (`- feat:` or `- chore:` prefix per the changelog guide). If a release has renamed that section in the meantime, create a fresh `## Unreleased` directly beneath the preamble and above the newest released section. Never edit a released section and never move the preamble.
 
@@ -81,7 +89,7 @@ The operator's proof (`docs/live-proof-human-review-push.md`) is written and com
 </requirements>
 
 <constraints>
-- **This prompt is gated.** It must not run before the operator's live proof (`docs/live-proof-human-review-push.md`) is committed, and the deletion commit must be strictly later than the proof commit. If the proof file is absent, or if its timestamps and the deployed version do not back it, stop and report the blocker — deleting the live channel before the shared path is proven is a failure of the spec even if every other check is green.
+- **Not gated on a live proof — operator decision, 2026-09-14.** The retirement rests on code evidence: the shared publish path shipped and was released in this repo, and the shared core's delivery was proven on real production traffic by the producer that landed it. Nothing here waits on a host, a proof file, or a deployed version. The tracked page required by requirement 8 must say so plainly rather than implying the ordering rule was met.
 - **Deletion, not unwiring.** No deprecation shims, no build tags, no commented-out senders, no "keep the old channel" escape hatch.
 - **`CLAUDE.md` is gitignored (`.gitignore` line `/CLAUDE.md`) and deliberately untracked** — requirement 7 edits the working-tree copy for the next agent reading it. Never `git add -f` it, and never treat its absence from the commit as a failure.
 - **Evidence scoping is deliberate, not a loophole:** the `chat_id` → 0 assertion excludes `pkg/config/` because the migration detector required by this prompt must name the field. Do not delete the detector to make the grep pass.
@@ -102,12 +110,6 @@ make precommit          # run FIRST: it regenerates mocks/ — until then mocks/
 go test -mod=mod ./...
 ```
 Both must exit 0. `make precommit` regenerates `mocks/`, which is what removes the notifier mock — so the order above matters. Do **not** hand-delete `mocks/notifier.go` to make the intermediate state pass (requirement 3).
-
-The gate first — the deletion must not happen before the operator's proof is committed:
-
-```bash
-test -f docs/live-proof-human-review-push.md && echo "live proof present"   # must print before anything below is meaningful
-```
 
 The bespoke surface must be gone — not merely unreferenced:
 
@@ -137,7 +139,7 @@ test "$(grep -c 'pkg/notify' CLAUDE.md)" = "0" && echo "no stale pkg/notify entr
 grep -rniE "bot[0-9]{6,}:|112230768" --include='*.go' . | wc -l                      # 0 — no credential literal survives in code (this prompt is the one that removes them)
 ```
 
-Note on scope: the git-history half of the ordering evidence (`git log -1` on the proof file being strictly earlier than the deletion commit) is created by dark-factory's commit *after* this prompt finishes, so it cannot be checked from inside the prompt. It belongs to the spec's verification ladder and the operator's approval gate for this prompt — report the proof file's timestamp and the deployed version you observed, and stop if the proof is missing.
+Note on scope: there is **no proof file to check and no ordering gate to satisfy** — the operator waived the live-proof requirement on 2026-09-14, and requirement 8's page must record that waiver honestly. Report what you actually observed; do not describe the ordering rule as met.
 </verification>
 
 <!--

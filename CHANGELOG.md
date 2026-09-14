@@ -3,6 +3,10 @@
 All notable changes to this project will be documented in this file.
 
 
+## v0.23.0
+
+- feat: Remove the repo's own notification channel — `pkg/notify` (Telegram client, OpenClaw webhook client, log sender), the per-type sender selection, `factory.CreateNotifiers` and the generated notifier mock are gone; watcher entries stay filter-only and every matched event is published into the shared notification core. The retirement ordering rule and the operator waiver of it are recorded in `docs/ordering-live-channel-retirement.md`
+
 ## v0.22.0
 
 - feat: Publish matched task events into the shared notification core as `agent-escalation` commands with a nil target, sent through the CQRS Kafka command sender from `pkg/publish`; the message names the task, status, phase and assignee and links back to the note, the four source fields ride along as metadata, and duplicate suppression is one per-watcher window keyed on task+phase, measured on an injectable clock and consumed by the attempt itself
