@@ -3,6 +3,10 @@
 All notable changes to this project will be documented in this file.
 
 
+## Unreleased
+
+- chore: update github.com/bborbe/vault-cli to v0.168.7
+
 ## v0.23.3
 
 - chore: update go module dependencies
