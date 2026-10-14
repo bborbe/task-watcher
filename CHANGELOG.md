@@ -3,6 +3,10 @@
 All notable changes to this project will be documented in this file.
 
 
+## Unreleased
+
+- chore: update go module dependencies
+
 ## v0.23.2
 
 - chore: update Go to 1.27.2 and github.com/bborbe/cqrs to v0.6.12, github.com/bborbe/errors to v1.6.3, github.com/bborbe/kafka to v1.27.1, github.com/bborbe/log to v1.7.4, github.com/bborbe/notification to v0.7.2, github.com/bborbe/time to v1.27.16, github.com/bborbe/vault-cli to v0.168.4, github.com/onsi/ginkgo/v2 to v2.33.1, github.com/onsi/gomega to v1.44.0
