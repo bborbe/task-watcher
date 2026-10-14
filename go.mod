@@ -9,7 +9,7 @@ require (
 	github.com/bborbe/log v1.7.4
 	github.com/bborbe/notification v0.7.2
 	github.com/bborbe/time v1.27.16
-	github.com/bborbe/vault-cli v0.168.4
+	github.com/bborbe/vault-cli v0.168.7
 	github.com/onsi/ginkgo/v2 v2.33.1
 	github.com/onsi/gomega v1.44.0
 	github.com/spf13/cobra v1.10.2
@@ -20,7 +20,7 @@ require (
 	github.com/IBM/sarama v1.61.1 // indirect
 	github.com/Masterminds/semver/v3 v3.5.0 // indirect
 	github.com/bborbe/collection v1.21.2 // indirect
-	github.com/bborbe/http v1.26.29 // indirect
+	github.com/bborbe/http v1.26.30 // indirect
 	github.com/bborbe/k8s v1.14.22 // indirect
 	github.com/bborbe/kv v1.21.18 // indirect
 	github.com/bborbe/math v1.4.14 // indirect
@@ -47,7 +47,7 @@ require (
 	github.com/golang/glog v1.2.5 // indirect
 	github.com/google/gnostic-models v0.7.1 // indirect
 	github.com/google/go-cmp v0.7.0 // indirect
-	github.com/google/pprof v0.0.0-20261012231050-2af12c3f4d87 // indirect
+	github.com/google/pprof v0.0.0-20261014150452-c3b4e57cab2c // indirect
 	github.com/google/uuid v1.6.0 // indirect
 	github.com/gorilla/mux v1.8.1 // indirect
 	github.com/hashicorp/go-uuid v1.0.4 // indirect
@@ -90,7 +90,7 @@ require (
 	k8s.io/apimachinery v0.38.0-alpha.2 // indirect
 	k8s.io/client-go v0.38.0-alpha.2 // indirect
 	k8s.io/klog/v2 v2.140.0 // indirect
-	k8s.io/kube-openapi v0.0.0-20261007072838-e2e80c32a35f // indirect
+	k8s.io/kube-openapi v0.0.0-20261014044854-ca3452a79603 // indirect
 	k8s.io/utils v0.0.0-20260707023825-cf1189d6abe3 // indirect
 	sigs.k8s.io/json v0.0.0-20260909141634-11ed52e25bc5 // indirect
 	sigs.k8s.io/randfill v1.0.0 // indirect
