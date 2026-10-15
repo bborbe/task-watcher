@@ -9,7 +9,7 @@ require (
 	github.com/bborbe/log v1.7.4
 	github.com/bborbe/notification v0.7.2
 	github.com/bborbe/time v1.27.16
-	github.com/bborbe/vault-cli v0.168.7
+	github.com/bborbe/vault-cli v0.169.1
 	github.com/onsi/ginkgo/v2 v2.33.1
 	github.com/onsi/gomega v1.44.0
 	github.com/spf13/cobra v1.10.2
