@@ -3,7 +3,7 @@
 All notable changes to this project will be documented in this file.
 
 
-## Unreleased
+## v0.23.6
 
 - chore: update Go to 1.27.3 and github.com/bborbe/kafka to v1.28.5, github.com/bborbe/log to v1.7.5, github.com/bborbe/notification to v0.7.3, github.com/bborbe/time to v1.27.18, github.com/bborbe/vault-cli to v0.177.0
 
