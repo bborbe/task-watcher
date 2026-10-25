@@ -3,7 +3,7 @@
 All notable changes to this project will be documented in this file.
 
 
-## Unreleased
+## v0.23.7
 
 - chore: update github.com/bborbe/cqrs to v0.6.13, github.com/bborbe/errors to v1.6.4, github.com/bborbe/kafka to v1.29.0, github.com/bborbe/notification to v0.7.4, github.com/bborbe/vault-cli to v0.183.0
 
