@@ -3,11 +3,11 @@ module github.com/bborbe/task-watcher
 go 1.27.3
 
 require (
-	github.com/bborbe/cqrs v0.6.13
-	github.com/bborbe/errors v1.6.4
-	github.com/bborbe/kafka v1.29.0
+	github.com/bborbe/cqrs v0.6.14
+	github.com/bborbe/errors v1.6.5
+	github.com/bborbe/kafka v1.29.1
 	github.com/bborbe/log v1.7.5
-	github.com/bborbe/notification v0.7.4
+	github.com/bborbe/notification v0.7.6
 	github.com/bborbe/time v1.27.18
 	github.com/bborbe/vault-cli v0.183.0
 	github.com/onsi/ginkgo/v2 v2.33.1
@@ -25,7 +25,7 @@ require (
 	github.com/bborbe/kv v1.21.19 // indirect
 	github.com/bborbe/math v1.4.16 // indirect
 	github.com/bborbe/parse v1.12.4 // indirect
-	github.com/bborbe/run v1.11.3 // indirect
+	github.com/bborbe/run v1.11.5 // indirect
 	github.com/bborbe/sentry v1.10.6 // indirect
 	github.com/bborbe/strimzi v1.8.22 // indirect
 	github.com/bborbe/validation v1.5.6 // indirect
@@ -47,7 +47,7 @@ require (
 	github.com/golang/glog v1.2.5 // indirect
 	github.com/google/gnostic-models v0.7.1 // indirect
 	github.com/google/go-cmp v0.7.0 // indirect
-	github.com/google/pprof v0.0.0-20261016150608-1facf8f91b50 // indirect
+	github.com/google/pprof v0.0.0-20261026192309-dbd0ed30aa88 // indirect
 	github.com/google/uuid v1.6.0 // indirect
 	github.com/gorilla/mux v1.8.1 // indirect
 	github.com/hashicorp/go-uuid v1.0.4 // indirect
@@ -74,7 +74,7 @@ require (
 	go.yaml.in/yaml/v3 v3.0.5 // indirect
 	golang.org/x/crypto v0.58.0 // indirect
 	golang.org/x/mod v0.42.0 // indirect
-	golang.org/x/net v0.61.0 // indirect
+	golang.org/x/net v0.62.0 // indirect
 	golang.org/x/oauth2 v0.37.0 // indirect
 	golang.org/x/sync v0.24.0 // indirect
 	golang.org/x/sys v0.49.0 // indirect
