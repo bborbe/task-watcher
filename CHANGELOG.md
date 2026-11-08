@@ -3,6 +3,10 @@
 All notable changes to this project will be documented in this file.
 
 
+## Unreleased
+
+- chore: restate the do-not-merge contract in the gate workflow
+
 ## v0.23.9
 
 - chore: update github.com/bborbe/cqrs to v0.6.15, github.com/bborbe/errors to v1.6.6, github.com/bborbe/kafka to v1.29.11, github.com/bborbe/log to v1.7.6, github.com/bborbe/notification to v0.7.10, github.com/bborbe/time to v1.27.25, github.com/bborbe/vault-cli to v0.185.1
