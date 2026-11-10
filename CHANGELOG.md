@@ -3,6 +3,10 @@
 All notable changes to this project will be documented in this file.
 
 
+## Unreleased
+
+- chore: update github.com/bborbe/kafka to v1.29.13, github.com/bborbe/log to v1.7.8, github.com/bborbe/notification to v0.7.11, github.com/bborbe/time to v1.27.27, github.com/bborbe/vault-cli to v0.192.0, github.com/onsi/ginkgo/v2 to v2.34.0
+
 ## v0.23.10
 
 - chore: restate the do-not-merge contract in the gate workflow
