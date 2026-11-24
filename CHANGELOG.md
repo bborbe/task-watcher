@@ -3,6 +3,10 @@
 All notable changes to this project will be documented in this file.
 
 
+## Unreleased
+
+- chore: remove 23 stale vulnerability ignore IDs from `Makefile` and `.trivyignore` (withdrawn advisory, module absent from `go.mod`, or version outside the affected range)
+
 ## v0.24.0
 
 - feat: add a `check-task-link` gate that fails a PR whose body carries no `Task: <task_identifier>` line, and install a pinned, checksum-verified Trivy release so `test` stops failing on the retired keyring helper
