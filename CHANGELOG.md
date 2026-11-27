@@ -3,6 +3,10 @@
 All notable changes to this project will be documented in this file.
 
 
+## Unreleased
+
+- chore: update go module dependencies
+
 ## v0.24.1
 
 - chore: remove 23 stale vulnerability ignore IDs from `Makefile` and `.trivyignore` (withdrawn advisory, module absent from `go.mod`, or version outside the affected range)

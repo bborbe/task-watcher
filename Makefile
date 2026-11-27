@@ -67,7 +67,7 @@ lint:
 vet:
 	go vet -mod=mod $(shell go list -mod=mod ./... | grep -v /vendor/)
 
-VULNCHECK_IGNORE ?= GO-2026-4883 GO-2026-4887 GO-2026-5064 GO-2026-5338 GO-2026-5622 GO-2026-5932
+VULNCHECK_IGNORE ?= GO-2026-5932
 
 # Known-benign govulncheck failure modes we swallow. golang.org/x/tools v0.46.0
 # panics on packages containing generic *types.TypeParam during SSA analysis
@@ -78,7 +78,7 @@ VULNCHECK_IGNORE ?= GO-2026-4883 GO-2026-4887 GO-2026-5064 GO-2026-5338 GO-2026-
 .PHONY: vulncheck
 vulncheck:
 	@PKGS="$(shell go list -mod=mod ./... | grep -v /vendor/)"; \
-	IGNORE_JSON=$$(printf '%s\n' $(VULNCHECK_IGNORE) | jq -R . | jq -s .); \
+	IGNORE_JSON= $$(printf '%s\n' $(VULNCHECK_IGNORE) | jq -R . | jq -s .); \
 	ERR=$$(mktemp); \
 	trap 'rm -f "$$ERR"' EXIT INT TERM; \
 	OUT=$$(go run golang.org/x/vuln/cmd/govulncheck@$(GOVULNCHECK_VERSION) -format json $$PKGS 2>$$ERR); \
